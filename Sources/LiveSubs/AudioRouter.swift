@@ -175,7 +175,8 @@ final class AudioRouter: @unchecked Sendable {
     func fedSeconds() -> Double { queue.sync { fed } }
     /// Analyzer clock now, the silence running at the end of it, and the last pause before that.
     func clock() -> (fed: Double, silence: Double, pause: (end: Double, length: Double)) {
-        queue.sync { (fed, silenceRun, pause) }
+        // Spelled out: Swift 6.4 can't infer the labelled tuple through `sync`'s generic result.
+        queue.sync { () -> (fed: Double, silence: Double, pause: (end: Double, length: Double)) in (fed, silenceRun, pause) }
     }
 
     func attach(format: AVAudioFormat, continuation: AsyncStream<AnalyzerInput>.Continuation, replaySeconds: Double = 0) {

@@ -574,6 +574,7 @@ final class SpeakEngine {
         var carry = Data()
         var count = 0
         var firstAt: TimeInterval?
+        var copy: AVAudioFile?
         do {
             for try await chunk in stream {
                 var bytes = carry + chunk
@@ -591,7 +592,9 @@ final class SpeakEngine {
                     firstAudioAt = Date()
                     configureOutput(format: format, device: device)
                     if !out.isRunning { try out.start() }
+                    if let url = debugOutputURL { copy = AudioFileWriter.open(url, format: format) }
                 }
+                try? copy?.write(from: buf)
                 player.scheduleBuffer(buf, completionHandler: nil)
                 if !player.isPlaying { player.play() }
                 count += 1

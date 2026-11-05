@@ -155,6 +155,9 @@ final class AIClient: ObservableObject {
         (AIProvider.ling, AIProvider.ling.base, AIProvider.ling.models[0])
     }
 
+    /// The 自定义 service's Ming speech model ("" for none), read from settings at every call.
+    var customSpeechModel: () -> String = { "" }
+
     /// Debug control only: make every chat call fail this way.
     var simulate: Failure?
 
@@ -180,8 +183,17 @@ final class AIClient: ObservableObject {
     var hasKey: Bool { key != nil && baseURL != nil && !model.isEmpty }
     /// Set up and not known to be refused.
     var usable: Bool { hasKey && keyState != .invalid }
-    /// Ming's voices, the cloned voice and one-call speak-back come only with Ling.
+    /// One-call speak-back (Ming's audio model) comes only with Ling.
     var mingUsable: Bool { usable && provider.ming }
+    /// What speaks Ming's voices and the cloned voice: Ling's Ming, or a Ming-3.0 TTS model the
+    /// 自定义 server serves; nil for the Mac's voices.
+    var speechModel: String? {
+        if provider.ming { return "Ming-3.0-tts-0.5B" }
+        let m = provider.isCustom ? customSpeechModel().trimmingCharacters(in: .whitespacesAndNewlines) : ""
+        return m.isEmpty ? nil : m
+    }
+    /// Ming's voices and the cloned voice can speak.
+    var voiceUsable: Bool { usable && speechModel != nil }
 
     /// Bumped by every check and service change, so a slow answer about an old one is ignored.
     private var checks = 0
@@ -344,53 +356,66 @@ final class AIClient: ObservableObject {
         }
     }
 
-    // MARK: Speech (Ming TTS, Ling only)
+    // MARK: Speech (Ming TTS: Ling's, or a 自定义 server's)
 
     /// Streams Ming's voice for `text` as raw 24 kHz mono 16-bit PCM chunks: a built-in `voice`, or
     /// a voice cloned from `reference` (a WAV data URI and what it says). `language` is Ming's
-    /// `language_id`, needed for Japanese, Korean, German, French and Spanish.
+    /// language, needed for Japanese, Korean, German, French and Spanish.
     func speech(_ text: String, voice: String? = "UK_Charlotte", reference: (audio: String, text: String)? = nil,
                 language: String? = nil) -> AsyncThrowingStream<Data, Error> {
         AsyncThrowingStream { cont in
             let task = Task { @MainActor [weak self] in
-                guard let self, self.provider.ming, let key = self.key, let base = self.baseURL else {
+                guard let self, let model = self.speechModel, let key = self.key, let base = self.baseURL else {
                     cont.finish(throwing: Failure.noKey)
                     return
                 }
+                let ling = self.provider.ming
                 await self.acquire(.speak)
                 var req = URLRequest(url: base.appendingPathComponent("audio/speech"))
                 req.httpMethod = "POST"
-                req.timeoutInterval = 20
+                req.timeoutInterval = reference == nil ? 20 : 30
                 self.authorize(&req, key)
                 req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                var body: [String: Any] = [
-                    "model": "Ming-3.0-tts-0.5B", "input": text,
-                    "response_format": "pcm", "sample_rate": 24000, "stream": true, "stream_format": "sse",
-                ]
-                if let reference {
-                    body["references"] = [["audio": reference.audio, "text": reference.text]]
-                    req.timeoutInterval = 30
-                } else if let voice {
-                    body["voice"] = voice
+                let body: [String: Any]
+                if ling {
+                    var b: [String: Any] = [
+                        "model": model, "input": text,
+                        "response_format": "pcm", "sample_rate": 24000, "stream": true, "stream_format": "sse",
+                    ]
+                    if let reference {
+                        b["references"] = [["audio": reference.audio, "text": reference.text]]
+                    } else if let voice {
+                        b["voice"] = voice
+                    }
+                    if let language { b["language_id"] = language }
+                    body = b
+                } else {
+                    body = LocalSpeech.body(model: model, text: text, voice: voice, reference: reference, language: language)
                 }
-                if let language { body["language_id"] = language }
                 req.httpBody = try? JSONSerialization.data(withJSONObject: body)
                 do {
                     let (bytes, response) = try await URLSession.shared.bytes(for: req)
-                    switch (response as? HTTPURLResponse)?.statusCode ?? 0 {
-                    case 200: break
-                    case 401, 403:
+                    let code = (response as? HTTPURLResponse)?.statusCode ?? 0
+                    // Ling answers a bad key with 403 as well (as in `post`).
+                    if code == 401 || (code == 403 && ling) {
                         self.keyState = .invalid
                         throw Failure.invalidKey
-                    case 429: throw Failure.rateLimited
-                    case let code: throw Failure.http(code)
                     }
-                    for try await line in bytes.lines {
-                        guard line.hasPrefix("data:"),
-                              let obj = try? JSONSerialization.jsonObject(with: Data(line.dropFirst(5).utf8)) as? [String: Any]
-                        else { continue }
-                        if obj["type"] as? String == "speech.audio.done" { break }
-                        if let b64 = obj["audio"] as? String, let pcm = Data(base64Encoded: b64) { cont.yield(pcm) }
+                    switch code {
+                    case 200: break
+                    case 429: throw Failure.rateLimited
+                    default: throw Failure.http(code)
+                    }
+                    if ling {
+                        for try await line in bytes.lines {
+                            guard line.hasPrefix("data:"),
+                                  let obj = try? JSONSerialization.jsonObject(with: Data(line.dropFirst(5).utf8)) as? [String: Any]
+                            else { continue }
+                            if obj["type"] as? String == "speech.audio.done" { break }
+                            if let b64 = obj["audio"] as? String, let pcm = Data(base64Encoded: b64) { cont.yield(pcm) }
+                        }
+                    } else {
+                        try await Self.streamWAV(bytes, into: cont)
                     }
                     cont.finish()
                 } catch {
@@ -399,6 +424,33 @@ final class AIClient: ObservableObject {
             }
             cont.onTermination = { _ in task.cancel() }
         }
+    }
+
+    /// A 自定义 server streams WAV at the model's own rate (44.1 kHz for Ming-3.0): pass it on as
+    /// 24 kHz chunks of about 0.1 s.
+    private static func streamWAV(_ bytes: URLSession.AsyncBytes, into cont: AsyncThrowingStream<Data, Error>.Continuation) async throws {
+        var wav = WAVStream()
+        var resampler: PCMResampler?
+        var pending = Data()
+        func flush(last: Bool) throws {
+            let pcm = try wav.feed(pending)
+            pending.removeAll(keepingCapacity: true)
+            if resampler == nil, let rate = wav.sampleRate {
+                resampler = PCMResampler(from: rate, to: LocalSpeech.rate)
+                if resampler == nil { throw Failure.parse }
+            }
+            guard let resampler else {
+                if last { throw Failure.parse }
+                return
+            }
+            let out = resampler.convert(pcm, last: last)
+            if !out.isEmpty { cont.yield(out) }
+        }
+        for try await byte in bytes {
+            pending.append(byte)
+            if pending.count >= 8_820 { try flush(last: false) }
+        }
+        try flush(last: true)
     }
 
     // MARK: Transport

@@ -9,7 +9,12 @@
       {
         "kind": "new",
         "title": "可以换用别家 AI 服务。",
-        "text": "设置 › AI 服务和首次引导里可以选 Ling、DeepSeek、通义千问、Kimi、智谱 GLM、OpenAI、OpenRouter、本机的 Ollama，或填任何兼容 OpenAI 接口的地址和模型。纪要、整句翻译和人名识别都走所选服务，每家的 key 分开保存，换回来不用重填。Ming 的声音、声音克隆和一步语音翻译仍只随 Ling 提供，换成别家时自动用本机声音和本机识别。"
+        "text": "设置 › AI 服务和首次引导里可以选 Ling、DeepSeek、通义千问、Kimi、智谱 GLM、OpenAI、OpenRouter、本机的 Ollama，或填任何兼容 OpenAI 接口的地址和模型。纪要、整句翻译和人名识别都走所选服务，每家的 key 分开保存，换回来不用重填。一步语音翻译仍只随 Ling 提供；Ming 的声音和声音克隆还可以来自“自定义”服务（见下一条），其他服务用本机声音和本机识别。"
+      },
+      {
+        "kind": "new",
+        "title": "“自定义”服务也能出 Ming 的声音。",
+        "text": "“自定义”服务如果也跑着 Ming-3.0 语音模型（比如在本机用 oMLX），在设置 › AI 服务里填上语音模型，同声传译就用 Ming 的声音和你自己的声音。一台 Mac 跑模型，别的电脑通过 Tailscale 等内网地址连过来也行。"
       },
       {
         "kind": "improved",

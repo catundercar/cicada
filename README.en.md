@@ -58,7 +58,7 @@ Every session saves its bilingual transcript, notes, and audio recording on your
 
 ## Privacy & Permissions
 
-Audio capture, language detection, speech recognition (Apple SpeechAnalyzer), and meeting recordings all stay on your Mac. The only data that leaves your device is the recognized text sent for translation and meeting notes, plus the short audio clips you speak while holding the talk key when using Ling. Without an AI service, subtitles, translation (via Google with Apple on-device fallback), meeting records, and push-to-talk interpreting all work. Live meeting notes, sharper sentence translation, and speaker names need an AI service: Ling (Ant Group's model service) by default, or DeepSeek, Qwen, Kimi, Zhipu GLM, OpenAI, OpenRouter, a local Ollama, or any OpenAI-compatible address (see [below](#ai-service)). One-step voice translation, Ming voices, and voice cloning come only with Ling. With Ling an hour of live notes costs roughly ¥0.15 to ¥1 at current pricing, and Ling gives ¥10 of credit every month, enough for about 10 to 50 hours of meetings; other services bill at their own prices, and Ollama is free.
+Audio capture, language detection, speech recognition (Apple SpeechAnalyzer), and meeting recordings all stay on your Mac. The only data that leaves your device is the recognized text sent for translation and meeting notes, plus the short audio clips you speak while holding the talk key when using Ling. Without an AI service, subtitles, translation (via Google with Apple on-device fallback), meeting records, and push-to-talk interpreting all work. Live meeting notes, sharper sentence translation, and speaker names need an AI service: Ling (Ant Group's model service) by default, or DeepSeek, Qwen, Kimi, Zhipu GLM, OpenAI, OpenRouter, a local Ollama, or any OpenAI-compatible address (see [below](#ai-service)). One-step voice translation comes only with Ling; Ming voices and voice cloning come with Ling or with a Ming-3.0 speech model on a **Custom** service (for example one you run with oMLX on your own Mac). With Ling an hour of live notes costs roughly ¥0.15 to ¥1 at current pricing, and Ling gives ¥10 of credit every month, enough for about 10 to 50 hours of meetings; other services bill at their own prices, and Ollama is free.
 
 Cicada asks for a permission only when you use the feature that needs it, and everything else keeps working if you decline.
 
@@ -76,7 +76,7 @@ Cicada asks for a permission only when you use the feature that needs it, and ev
 
 ## Models
 
-Without an AI service, everything runs on Apple's on-device models plus Google Translate. With one, the chosen service's model handles the tasks below and falls back automatically if a request fails; the two Ming rows need Ling.
+Without an AI service, everything runs on Apple's on-device models plus Google Translate. With one, the chosen service's model handles the tasks below and falls back automatically if a request fails; one-step voice translation needs Ling, and Ming voices can also come from a **Custom** service.
 
 | Feature | With an AI service (Ling by default) | Without / fallback |
 |---|---|---|
@@ -86,7 +86,7 @@ Without an AI service, everything runs on Apple's on-device models plus Google T
 | Live notes, the final version, speaker names | Same as above | not available |
 | Checking the key | The chosen model (`Ling-3.0-tiny` for Ling), one token | — |
 | Interpreting: hearing and translating what you say | With Ling: Ming `Ming-3.0-audio-flash`, one step; other services use the right column | Apple on-device transcript, then the translation chain above |
-| Interpreting: the voice the room hears, voice cloning | With Ling: Ming `Ming-3.0-tts-0.5B`; other services use the right column | macOS system voices (`AVSpeechSynthesizer`); no cloning |
+| Interpreting: the voice the room hears, voice cloning | With Ling: Ming `Ming-3.0-tts-0.5B`; with a **Custom** service that has a speech model set: that service's Ming-3.0 speech model; other services use the right column | macOS system voices (`AVSpeechSynthesizer`); no cloning |
 | Speaker identification (说话人识别, experimental, off by default) | WeSpeaker ResNet34-LM voiceprints, bundled, on device (Core ML) | same |
 
 <a id="ai-service"></a>
@@ -97,7 +97,8 @@ Without an AI service, everything runs on Apple's on-device models plus Google T
 3. Paste the key and click **Save and check** (or paste it in the prompt at the top of the notes window). A one-token request confirms the key and model work. Each service keeps its own key, so switching back needs no new one.
 4. Optionally change the model on the same page: `Ling-3.1-flash` or `Ling-3.0-flash` for Ling, any model the service offers for the others (after a check, the menu lists the service's own models).
 5. A local [Ollama](https://ollama.com/download) needs no key: install it, pull a model such as `qwen2.5:7b`, and click **Check Connection**. **Custom** takes any OpenAI-compatible address ([oMLX](https://github.com/jundot/omlx), LM Studio, vLLM, a relay…), with an optional key; Cicada asks local models not to think, so a sentence translation doesn't wait on reasoning.
-6. Pick the Ming voice for each language under **Settings › Interpreting** (Ling only). To remove a key, click **Remove** on the same page.
+6. If the **Custom** service also serves a Ming-3.0 speech model (such as `Ming-3.0-tts-0.5B-bf16`, which oMLX loads from 0.7.4), enter its name under **Speech model**: interpreting then speaks in Ming's voices and your own voice without Ling. The models can run on one Mac and serve others over a private network such as Tailscale.
+7. Pick the Ming voice for each language under **Settings › Interpreting** (with Ling, or with a Custom service that has a speech model). To remove a key, click **Remove** on the same page.
 
 ## Requirements & Installation
 

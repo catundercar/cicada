@@ -100,6 +100,10 @@ final class AppSettings: ObservableObject {
     @Published var aiBaseURL: String {
         didSet { save() }
     }
+    /// The 自定义 service's Ming-3.0 TTS model ("" for the Mac's voices), e.g. "Ming-3.0-tts-0.5B-bf16".
+    @Published var aiSpeechModel: String {
+        didSet { save() }
+    }
     /// The model for the current service.
     var aiModel: String {
         get { aiModels[aiProvider] ?? AIProvider.named(aiProvider).models.first ?? "" }
@@ -171,6 +175,7 @@ final class AppSettings: ObservableObject {
         aiModels = defaults.dictionary(forKey: "aiModels") as? [String: String]
             ?? defaults.string(forKey: "aiModel").map { [AIProvider.ling.id: $0] } ?? [:]
         aiBaseURL = defaults.string(forKey: "aiBaseURL") ?? ""
+        aiSpeechModel = defaults.string(forKey: "aiSpeechModel") ?? ""
         displayMode = defaults.string(forKey: "displayMode") ?? "notes"
         speakVoices = defaults.dictionary(forKey: "speakVoices") as? [String: String] ?? [:]
         endWithApp = defaults.object(forKey: "endWithApp") as? Bool ?? true
@@ -205,6 +210,7 @@ final class AppSettings: ObservableObject {
         defaults.set(aiProvider, forKey: "aiProvider")
         defaults.set(aiModels, forKey: "aiModels")
         defaults.set(aiBaseURL, forKey: "aiBaseURL")
+        defaults.set(aiSpeechModel, forKey: "aiSpeechModel")
         defaults.set(displayMode, forKey: "displayMode")
         defaults.set(speakVoices, forKey: "speakVoices")
         defaults.set(endWithApp, forKey: "endWithApp")

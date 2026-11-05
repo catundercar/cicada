@@ -3,8 +3,9 @@ import Foundation
 // MARK: - Services
 
 /// An OpenAI-compatible chat service for notes, translation and speaker names. Ling is the default
-/// and the only one with Ming (its voices, the user's cloned voice and one-call speak-back); with any
-/// other service those fall back to the Mac's voices and on-device recognition.
+/// and comes with Ming (its voices, the user's cloned voice and one-call speak-back). A 自定义 server
+/// that also serves Ming-3.0 TTS (oMLX, mlx-audio) gives the voices and cloning; otherwise the Mac's
+/// voices speak, and speak-back is always on-device recognition plus text translation.
 struct AIProvider: Identifiable, Equatable {
     /// How a service turns a model's thinking off. Some think by default, which adds seconds to every
     /// subtitle and bills the reasoning.

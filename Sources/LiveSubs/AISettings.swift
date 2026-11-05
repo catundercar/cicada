@@ -11,6 +11,7 @@ struct AISettingsView: View {
     @State private var editing = false
     @State private var baseDraft = ""
     @State private var modelDraft = ""
+    @State private var speechDraft = ""
 
     private var provider: AIProvider { settings.aiEndpoint.provider }
 
@@ -29,18 +30,23 @@ struct AISettingsView: View {
                     SoftButton(L("去选声音")) { model.settingsSection = .speak }
                 }
             }
-            SettingsCard { modelRow }
+            SettingsCard {
+                modelRow
+                if provider.isCustom { speechRow }
+            }
             Text(costNote).font(.system(size: 12)).foregroundStyle(Palette.tertiary)
         }
         .onAppear {
             baseDraft = settings.aiBaseURL
             modelDraft = settings.aiModel
+            speechDraft = settings.aiSpeechModel
         }
     }
 
     private var voiceNote: String {
-        if ai.mingUsable { return L("Ming 的声音或你自己的声音") }
-        return provider.ming ? L("没有 key 时用本机声音") : L("Ming 声音只随 Ling 提供，现用本机声音")
+        if ai.voiceUsable { return L("Ming 的声音或你自己的声音") }
+        if provider.ming { return L("没有 key 时用本机声音") }
+        return provider.isCustom ? L("填了语音模型就用 Ming 的声音，现用本机声音") : L("Ming 声音只随 Ling 提供，现用本机声音")
     }
 
     private var costNote: String {
@@ -48,7 +54,10 @@ struct AISettingsView: View {
             return L("一小时会议约 ¥0.15–1（目前优惠价）。发出去的只有文字（用你自己的声音时还有那段录音），语音识别留在本机。")
         }
         if provider.isLocal { return L("全部在这台 Mac 上运行，不花钱；语音识别也留在本机。") }
-        if provider.isCustom { return L("费用按这个服务的价格计算。发出去的只有文字，语音识别留在本机。") }
+        if provider.isCustom {
+            return ai.speechModel == nil ? L("费用按这个服务的价格计算。发出去的只有文字，语音识别留在本机。")
+                : L("费用按这个服务的价格计算。发出去的只有文字（用你自己的声音时还有那段录音），语音识别留在本机。")
+        }
         return L("按 \(provider.name) 的价格计费。发出去的只有文字，语音识别留在本机。")
     }
 
@@ -188,7 +197,7 @@ struct AISettingsView: View {
                 PillMenu(value: settings.aiModel, options: provider.models.map { ($0, $0) }) { pickModel($0) }
             }
         } else {
-            SettingsRow(title: L("模型"), detail: L("填服务支持的任意模型，回车生效"), divider: false) {
+            SettingsRow(title: L("模型"), detail: L("填服务支持的任意模型，回车生效"), divider: provider.isCustom) {
                 HStack(spacing: 6) {
                     TextField(provider.models.first ?? "model", text: $modelDraft)
                         .textFieldStyle(.plain).font(.system(size: 12, design: .monospaced))
@@ -212,6 +221,44 @@ struct AISettingsView: View {
             }
             .onChange(of: provider.id) { modelDraft = settings.aiModel }
         }
+    }
+
+    /// 自定义 only: a Ming-3.0 TTS model on the same server (oMLX, mlx-audio) speaks Ming's voices
+    /// and the cloned voice; empty leaves the Mac's voices.
+    private var speechRow: some View {
+        SettingsRow(title: L("语音模型"), detail: L("可不填；填服务上的 Ming-3.0 语音模型，同传就用 Ming 的声音"), divider: false) {
+            HStack(spacing: 6) {
+                TextField("Ming-3.0-tts-0.5B-bf16", text: $speechDraft)
+                    .textFieldStyle(.plain).font(.system(size: 12, design: .monospaced))
+                    .padding(.horizontal, 10).frame(width: 210, height: 28)
+                    .background(RoundedRectangle(cornerRadius: 7).fill(Palette.ground))
+                    .onSubmit { pickSpeech(speechDraft) }
+                if !speechSuggestions.isEmpty {
+                    Menu {
+                        ForEach(speechSuggestions, id: \.self) { m in Button(m) { pickSpeech(m) } }
+                    } label: {
+                        Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .semibold))
+                            .foregroundStyle(Palette.secondary)
+                            .frame(width: 28, height: 28)
+                            .background(RoundedRectangle(cornerRadius: 7).fill(Palette.ground))
+                            .contentShape(Rectangle())
+                    }
+                    .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
+                    .accessibilityLabel(L("选择语音模型"))
+                }
+            }
+        }
+    }
+
+    /// What the server lists that looks like Ming's speech model.
+    private var speechSuggestions: [String] {
+        ai.listedModels.filter { $0.localizedCaseInsensitiveContains("ming") && $0.localizedCaseInsensitiveContains("tts") }
+    }
+
+    private func pickSpeech(_ raw: String) {
+        let m = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        speechDraft = m
+        settings.aiSpeechModel = m
     }
 
     private var suggestions: [String] {

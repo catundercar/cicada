@@ -25,14 +25,18 @@
 "同声传译的声音" = "Interpreting voice";
 "Ming 的声音或你自己的声音" = "A Ming voice or your own voice";
 "没有 key 时用本机声音" = "Uses the Mac's voice without a key";
+"填了语音模型就用 Ming 的声音，现用本机声音" = "Ming voices once a speech model is set; using the Mac's voice for now";
 "Ming 声音只随 Ling 提供，现用本机声音" = "Ming voices come only with Ling; using the Mac's voice";
 "去选声音" = "Choose voice";
 "模型" = "Model";
 "3.1 更准；3.0 更快、更省" = "3.1 is more accurate; 3.0 is faster and cheaper";
 "填服务支持的任意模型，回车生效" = "Any model the service offers; press Return to apply";
+"语音模型" = "Speech model";
+"可不填；填服务上的 Ming-3.0 语音模型，同传就用 Ming 的声音" = "Optional: a Ming-3.0 speech model on this service gives interpreting Ming's voices";
 "一小时会议约 ¥0.15–1（目前优惠价）。发出去的只有文字（用你自己的声音时还有那段录音），语音识别留在本机。" = "About ¥0.15–1 per hour of meeting (current discount pricing). Only text is sent (plus your voice sample if you use your own voice); speech recognition stays on this Mac.";
 "全部在这台 Mac 上运行，不花钱；语音识别也留在本机。" = "Everything runs on this Mac at no cost; speech recognition stays here too.";
 "费用按这个服务的价格计算。发出去的只有文字，语音识别留在本机。" = "Billed at this service's prices. Only text is sent; speech recognition stays on this Mac.";
+"费用按这个服务的价格计算。发出去的只有文字（用你自己的声音时还有那段录音），语音识别留在本机。" = "Billed at this service's prices. Only text is sent (plus your voice sample if you use your own voice); speech recognition stays on this Mac.";
 "按 %@ 的价格计费。发出去的只有文字，语音识别留在本机。" = "Billed at %@'s prices. Only text is sent; speech recognition stays on this Mac.";
 "还没填服务地址" = "No service address yet";
 "还没填模型" = "No model yet";
@@ -65,6 +69,7 @@
 "保存并检查" = "Save and check";
 "取消" = "Cancel";
 "选择模型" = "Choose model";
+"选择语音模型" = "Choose speech model";
 
 /* AboutPanel */
 "把 Mac 正在播放的声音变成实时双语字幕和会议纪要" = "Live bilingual subtitles and meeting notes from whatever your Mac is playing";
@@ -860,14 +865,18 @@
 "系统声音" = "System voice";
 "你的音色" = "Your voice";
 "填入 Ling key：声音更自然，还能用你自己的声音" = "Add a Ling key for more natural voices, including your own";
+"在 AI 服务里填语音模型：声音更自然，还能用你自己的声音" = "Add a speech model under AI Service for more natural voices, including your own";
 "AI 服务选 Ling：声音更自然，还能用你自己的声音" = "Choose Ling as the AI service for more natural voices, including your own";
 "去填写" = "Add key";
+"去设置" = "Set up";
 "去更换" = "Switch";
 "每种语言各记一个声音" = "Each language remembers its voice";
 "对方说%@时用" = "Used when they speak %@";
 "（当前）" = " (now)";
 "Ling 不可用时自动换成本机声音" = "Falls back to the Mac's voice when Ling is unavailable";
+"%@ 不可用时自动换成本机声音" = "Falls back to the Mac's voice when %@ is unavailable";
 "填入 Ling key 后可用 Ming 声音和你自己的声音" = "With a Ling key you can use Ming voices and your own voice";
+"在 AI 服务里填语音模型后可用 Ming 声音和你自己的声音" = "With a speech model under AI Service you can use Ming voices and your own voice";
 "AI 服务选 Ling 后可用 Ming 声音和你自己的声音" = "With Ling as the AI service you can use Ming voices and your own voice";
 "需要 Ling key" = "Needs Ling key";
 "慢约 1 秒" = "~1 s slower";
@@ -890,6 +899,7 @@
 "%lld–%lld 秒" = "%lld–%lld s";
 "听起来不像或有杂音？换个安静的地方重录一次。录音仅保存在本机，可随时删除。" = "Doesn't sound like you, or noisy? Record again somewhere quiet. The recording stays on this Mac and can be deleted anytime.";
 "需先在“AI 服务”中填入 Ling key，才能使用你自己的声音。" = "Add a Ling key under “AI Service” to use your own voice.";
+"需先在“AI 服务”中填语音模型，才能使用你自己的声音。" = "Add a speech model under “AI Service” to use your own voice.";
 "需先在“AI 服务”中选用 Ling，才能使用你自己的声音。" = "Choose Ling under “AI Service” to use your own voice.";
 "录好了，先听听像不像" = "Recorded. Listen to check it sounds like you";
 "%lld 秒 · 识别出的文字会与录音一起用于学习你的音色" = "%lld s · the recognized text is used with the recording to learn your voice";

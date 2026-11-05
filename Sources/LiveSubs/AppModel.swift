@@ -154,6 +154,7 @@ final class AppModel: ObservableObject {
         ai.endpoint = { [weak self] in
             self?.settings.aiEndpoint ?? (AIProvider.ling, AIProvider.ling.base, AIProvider.ling.models[0])
         }
+        ai.customSpeechModel = { [weak self] in self?.settings.aiSpeechModel ?? "" }
         listen.translator = translator
         translator.glossary = { [weak self] in self?.notes.glossary ?? [] }
         notes.language = { [weak self] id in
@@ -720,24 +721,24 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// The chosen voice for a language, or its default (Ming's first with Ling, else the Mac's).
+    /// The chosen voice for a language, or its default (Ming's first when Ming can speak, else the Mac's).
     func voiceID(for language: String) -> String? {
         if let id = settings.speakVoices[VoiceCatalog.key(for: language)] {
-            if id == "clone" && !VoiceReference.exists { return VoiceCatalog.defaultID(for: language, hasKey: ai.mingUsable) }
+            if id == "clone" && !VoiceReference.exists { return VoiceCatalog.defaultID(for: language, hasKey: ai.voiceUsable) }
             return id
         }
-        return VoiceCatalog.defaultID(for: language, hasKey: ai.mingUsable)
+        return VoiceCatalog.defaultID(for: language, hasKey: ai.voiceUsable)
     }
 
     func setVoice(_ id: String, for language: String) {
         settings.speakVoices[VoiceCatalog.key(for: language)] = id
     }
 
-    /// Ming's voices need a working Ling key; without one (or with another service) the Mac's voice speaks.
+    /// Ming's voices need Ling with a working key, or a 自定义 server with a speech model; otherwise the Mac's voice speaks.
     func voiceRoute(id: String?, language: String) -> SpeakEngine.VoiceRoute {
         guard let id else { return .system(nil) }
         if id.hasPrefix("system:") { return .system(String(id.dropFirst("system:".count))) }
-        guard ai.mingUsable else { return .system(nil) }
+        guard ai.voiceUsable else { return .system(nil) }
         let lang = VoiceCatalog.mingLanguage(for: language)
         if id == "clone" {
             guard let ref = VoiceReference.reference() else { return .system(nil) }
@@ -1092,6 +1093,9 @@ final class AppModel: ObservableObject {
             // aiBase:<url>: the 自定义 service's address.
             settings.aiBaseURL = arg
             Task { await ai.reconfigure() }
+        case "aiSpeech":
+            // aiSpeech:<model>: the 自定义 service's Ming speech model; aiSpeech: for the Mac's voices.
+            settings.aiSpeechModel = arg
         case "voice":
             // voice:<lang>=<id> chooses ("voice:en=ming:UK_George", "voice:zh=clone"); voice:<lang> logs the choice.
             let kv = arg.split(separator: "=", maxSplits: 1).map(String.init)
@@ -1230,7 +1234,7 @@ final class AppModel: ObservableObject {
             ai.hideKey = arg != "off"
             Task { await ai.check() }
         case "aiState":
-            debugLog("ai state=\(ai.keyState) provider=\(ai.provider.id) base=\(ai.baseURL?.absoluteString ?? "-") hasKey=\(ai.hasKey) model=\(settings.aiModel) ming=\(ai.mingUsable) listed=\(ai.listedModels.count)")
+            debugLog("ai state=\(ai.keyState) provider=\(ai.provider.id) base=\(ai.baseURL?.absoluteString ?? "-") hasKey=\(ai.hasKey) model=\(settings.aiModel) ming=\(ai.mingUsable) voice=\(ai.speechModel ?? "-")/\(ai.voiceUsable) listed=\(ai.listedModels.count)")
         case "subtitles": setSubtitles(arg)
         case "meetingSubtitles": setSubtitles(arg, meetingOnly: true)
         case "notesLang": setNotesLanguage(arg)
@@ -1246,6 +1250,29 @@ final class AppModel: ObservableObject {
         case "speakOff": enableSpeaking(false)
         case "speakOut": speak.debugOutputURL = arg.isEmpty ? nil : URL(fileURLWithPath: arg)
         case "speakFile": speak.speakFile(URL(fileURLWithPath: arg))
+        case "voiceFile":
+            // voiceFile:<lang>=<text> renders that language's chosen Ming voice into the speakOut file
+            // as a 24 kHz WAV, without opening an audio device (no output or mic permission involved).
+            let kv = arg.split(separator: "=", maxSplits: 1).map(String.init)
+            guard kv.count == 2, let url = speak.debugOutputURL else { debugLog("voiceFile: needs speakOut and <lang>=<text>"); break }
+            guard case .stream(let make) = voiceRoute(id: voiceID(for: kv[0]), language: kv[0]) else {
+                debugLog("voiceFile: \(kv[0]) has no Ming voice")
+                break
+            }
+            Task {
+                let started = Date()
+                var pcm = Data()
+                var first: TimeInterval?
+                do {
+                    for try await chunk in make(kv[1]) {
+                        if first == nil { first = Date().timeIntervalSince(started) }
+                        pcm += chunk
+                    }
+                } catch { debugLog("voiceFile failed: \(error)") }
+                try? LocalSpeech.wav(pcm, rate: Int(LocalSpeech.rate)).write(to: url)
+                debugLog("voiceFile \(kv[0]): \(String(format: "%.2f", Double(pcm.count) / 48_000)) s of audio, first chunk "
+                         + "\(String(format: "%.2f", first ?? -1)) s, done in \(String(format: "%.2f", Date().timeIntervalSince(started))) s")
+            }
         case "speakTest":
             // speakTest:<sample|voice>: open settings › 同声传译 with the 试一句 sheet and run it.
             settingsSection = .speak

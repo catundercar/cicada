@@ -95,7 +95,7 @@
 2. 去对应平台创建 API key 并复制。以 Ling 为例：打开 [Ling 开放平台](https://chat.ant-ling.com/platform/api)，注册或登录后点创建令牌，复制以 `sk-` 开头的那串 key。
 3. 粘贴后点保存并检查，也可以直接粘贴到纪要窗口顶部的提示框里。知了会发一个只用一个 token 的请求确认 key 和模型可用。每家的 key 分开保存，换回来不用重填。
 4. 同一页面可以换模型：Ling 在 `Ling-3.1-flash` 和 `Ling-3.0-flash` 之间选，其他服务可以填它支持的任意模型，检查通过后菜单里会列出服务自己的模型。
-5. 用本机的 [Ollama](https://ollama.com/download) 不需要 key：装好并拉取一个模型（如 `qwen2.5:7b`）后点检查连接。“自定义”可以填任何兼容 OpenAI 接口的地址（如 LM Studio、vLLM 或中转服务），key 可不填。
+5. 用本机的 [Ollama](https://ollama.com/download) 不需要 key：装好并拉取一个模型（如 `qwen2.5:7b`）后点检查连接。“自定义”可以填任何兼容 OpenAI 接口的地址（如 [oMLX](https://github.com/jundot/omlx)、LM Studio、vLLM 或中转服务），key 可不填；知了会请本地模型关掉思考，免得每句翻译都要等很久。
 6. 每种语言用哪个 Ming 声音在同声传译设置里选（只在选 Ling 时可用）。想移除 key，在同一页面点移除即可。
 
 ## 系统要求与安装

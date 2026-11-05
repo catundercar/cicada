@@ -10,6 +10,11 @@
         "kind": "new",
         "title": "可以换用别家 AI 服务。",
         "text": "设置 › AI 服务和首次引导里可以选 Ling、DeepSeek、通义千问、Kimi、智谱 GLM、OpenAI、OpenRouter、本机的 Ollama，或填任何兼容 OpenAI 接口的地址和模型。纪要、整句翻译和人名识别都走所选服务，每家的 key 分开保存，换回来不用重填。Ming 的声音、声音克隆和一步语音翻译仍只随 Ling 提供，换成别家时自动用本机声音和本机识别。"
+      },
+      {
+        "kind": "improved",
+        "title": "本地模型不再每句都先思考。",
+        "text": "用“自定义”接 oMLX、vLLM 等本地服务时，知了会请模型关掉思考，整句翻译和纪要不用再等推理，也不会因此超时退回 Google。"
       }
     ]
   },

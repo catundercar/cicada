@@ -41,6 +41,15 @@ import Testing
 
         let plain = AIRequest.chatBody(model: "m", messages: messages, maxTokens: 10, json: false, thinking: .none, omit: [])
         #expect(plain["thinking"] == nil && plain["enable_thinking"] == nil)
+
+        // 自定义 (oMLX, vLLM…) hands the switch to the chat template; a server that refuses it gets the plain body.
+        #expect(AIProvider.named("custom").thinking == .templateKwargs)
+        let local = AIRequest.chatBody(model: "m", messages: messages, maxTokens: 10, json: false, thinking: .templateKwargs, omit: [])
+        #expect((local["chat_template_kwargs"] as? [String: Bool]) == ["enable_thinking": false])
+        #expect(local["thinking"] == nil && local["enable_thinking"] == nil)
+        #expect(AIRequest.refused("Unrecognized request argument supplied: chat_template_kwargs", in: local) == .thinking)
+        let bare = AIRequest.chatBody(model: "m", messages: messages, maxTokens: 10, json: false, thinking: .templateKwargs, omit: .thinking)
+        #expect(bare["chat_template_kwargs"] == nil)
     }
 
     @Test func refusedParametersAreLeftOut() {

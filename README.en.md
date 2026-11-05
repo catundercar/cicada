@@ -96,7 +96,7 @@ Without an AI service, everything runs on Apple's on-device models plus Google T
 2. Create an API key on that service and copy it. For Ling: sign up or log in on the [Ling open platform](https://chat.ant-ling.com/platform/api), click **创建令牌** (create token), and copy the key that starts with `sk-`.
 3. Paste the key and click **Save and check** (or paste it in the prompt at the top of the notes window). A one-token request confirms the key and model work. Each service keeps its own key, so switching back needs no new one.
 4. Optionally change the model on the same page: `Ling-3.1-flash` or `Ling-3.0-flash` for Ling, any model the service offers for the others (after a check, the menu lists the service's own models).
-5. A local [Ollama](https://ollama.com/download) needs no key: install it, pull a model such as `qwen2.5:7b`, and click **Check Connection**. **Custom** takes any OpenAI-compatible address (LM Studio, vLLM, a relay…), with an optional key.
+5. A local [Ollama](https://ollama.com/download) needs no key: install it, pull a model such as `qwen2.5:7b`, and click **Check Connection**. **Custom** takes any OpenAI-compatible address ([oMLX](https://github.com/jundot/omlx), LM Studio, vLLM, a relay…), with an optional key; Cicada asks local models not to think, so a sentence translation doesn't wait on reasoning.
 6. Pick the Ming voice for each language under **Settings › Interpreting** (Ling only). To remove a key, click **Remove** on the same page.
 
 ## Requirements & Installation

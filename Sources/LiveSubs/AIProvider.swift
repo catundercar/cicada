@@ -14,6 +14,9 @@ struct AIProvider: Identifiable, Equatable {
         case typeDisabled
         /// `"enable_thinking": false` (Qwen on DashScope).
         case enableFalse
+        /// `"chat_template_kwargs": {"enable_thinking": false}`, the switch local servers (oMLX, vLLM,
+        /// SGLang) hand to the model's chat template; without it a local Qwen thinks ~30 s per line.
+        case templateKwargs
     }
 
     /// Stored in settings and names the key file.
@@ -76,7 +79,8 @@ struct AIProvider: Identifiable, Equatable {
                    keyPage: "https://openrouter.ai/keys", needsKey: true, thinking: .none, ming: false, spacing: 0.2),
         AIProvider(id: "ollama", base: "http://localhost:11434/v1/", models: ["qwen2.5:7b", "llama3.1:8b"],
                    keyPage: "https://ollama.com/download", needsKey: false, thinking: .none, ming: false, spacing: 0),
-        AIProvider(id: "custom", base: "", models: [], keyPage: nil, needsKey: false, thinking: .none, ming: false, spacing: 0.2),
+        AIProvider(id: "custom", base: "", models: [], keyPage: nil, needsKey: false, thinking: .templateKwargs, ming: false,
+                   spacing: 0.2),
     ]
 
     static func named(_ id: String) -> AIProvider { all.first { $0.id == id } ?? ling }
@@ -127,6 +131,7 @@ enum AIRequest {
             case .none: break
             case .typeDisabled: body["thinking"] = ["type": "disabled"]
             case .enableFalse: body["enable_thinking"] = false
+            case .templateKwargs: body["chat_template_kwargs"] = ["enable_thinking": false]
             }
         }
         return body
@@ -141,6 +146,7 @@ enum AIRequest {
         if body["temperature"] != nil, m.contains("temperature") { return .temperature }
         if body["response_format"] != nil, m.contains("response_format") || m.contains("json_object") { return .responseFormat }
         if body["thinking"] != nil || body["enable_thinking"] != nil, m.contains("thinking") { return .thinking }
+        if body["chat_template_kwargs"] != nil, m.contains("chat_template_kwargs") || m.contains("thinking") { return .thinking }
         return nil
     }
 

@@ -444,7 +444,7 @@ final class SpeakEngine {
             probe?.to = to
             @MainActor func timing(voice: Double?) -> SentenceTiming {
                 SentenceTiming(at: textAt, side: "me", chars: text.count, recognize: textAt.timeIntervalSince(released),
-                               queue: trace.lingQueue, translate: translatedAt.timeIntervalSince(textAt), voice: voice,
+                               queue: trace.aiQueue, translate: translatedAt.timeIntervalSince(textAt), voice: voice,
                                failed: trace.failedSeconds, via: result == nil ? "none" : trace.via, fallbacks: trace.fallbacks)
             }
             guard let translated = result else {

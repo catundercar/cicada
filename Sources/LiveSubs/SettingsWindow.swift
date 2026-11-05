@@ -112,6 +112,8 @@ let subtitleOptions: [(id: String, title: String)] = [("both", L("原文 + 译�
 struct PillMenu: View {
     let value: String
     let options: [(id: String, title: String)]
+    /// White on a grey card, where the ground colour would vanish.
+    var fill = Palette.ground
     let onPick: (String) -> Void
     var body: some View {
         Menu {
@@ -123,7 +125,7 @@ struct PillMenu: View {
                     .foregroundStyle(Palette.secondary)
             }
             .padding(.horizontal, 10).frame(height: 28)
-            .background(RoundedRectangle(cornerRadius: 7).fill(Palette.ground))
+            .background(RoundedRectangle(cornerRadius: 7).fill(fill))
             .contentShape(Rectangle())
         }
         .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
@@ -437,8 +439,9 @@ struct SettingsView: View {
             case .overlay: overlay
             case .language: LanguageSettings(model: model, settings: settings)
             case .records: records
-            case .ai: AISettingsView(model: model, ling: model.ling, settings: settings)
-            case .diagnostics: DiagnosticsView(diagnostics: model.diagnostics, model: settings.aiModel)
+            case .ai: AISettingsView(model: model, ai: model.ai, settings: settings)
+            case .diagnostics: DiagnosticsView(diagnostics: model.diagnostics, model: "\(settings.aiEndpoint.provider.name) \(settings.aiModel)",
+                                              provider: settings.aiEndpoint.provider)
             }
         }
         .padding(.leading, 12).padding(.trailing, 28).padding(.top, 40).padding(.bottom, 28)
@@ -507,7 +510,7 @@ struct SettingsView: View {
                         model.objectWillChange.send()
                     }
                 }
-                VoiceSection(model: model, settings: settings, ling: model.ling)
+                VoiceSection(model: model, settings: settings, ai: model.ai)
             }
             if model.virtualMic != nil { micSettings }
         }

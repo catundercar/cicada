@@ -327,7 +327,7 @@ final class ListenEngine {
             text = HeardText.clean(text)
             volatileText = ""
             volatileEpoch += 1
-            // A "." or "…" from a breath or a click is no sentence: Ling would answer it with a note that
+            // A "." or "…" from a breath or a click is no sentence: the AI would answer it with a note that
             // there was nothing to translate, and it would sit in the record as a line.
             guard text.contains(where: \.isLetter) else { renderSubtitles(); return }
             var weighted = 0.0, chars = 0
@@ -522,7 +522,7 @@ final class ListenEngine {
             let result = await self.translate(seg.text, source: seg.sourceCode, trace: trace)
             if let timing = self.finalTiming.removeValue(forKey: id), !trace.attempts.isEmpty {
                 self.onTiming?(SentenceTiming(at: timing.at, side: "them", chars: seg.text.count, recognize: timing.recognize,
-                                              queue: trace.lingQueue, translate: Date().timeIntervalSince(asked), voice: nil,
+                                              queue: trace.aiQueue, translate: Date().timeIntervalSince(asked), voice: nil,
                                               failed: trace.failedSeconds, via: result == nil ? "none" : trace.via,
                                               fallbacks: trace.fallbacks))
             }

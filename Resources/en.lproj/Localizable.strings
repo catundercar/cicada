@@ -1,13 +1,23 @@
+/* AIClient */
+"%@ 返回错误 %lld" = "%@ returned error %lld";
+"回复不是 OpenAI 兼容格式，检查服务地址" = "The reply isn't OpenAI-compatible; check the service address";
+"连不上 %@，确认它已在本机运行" = "Can't reach %@; make sure it's running on this Mac";
+"连不上 %@，检查网络或代理" = "Can't reach %@; check your network or proxy";
+
+/* AIProvider */
+"通义千问" = "Qwen";
+"智谱 GLM" = "Zhipu GLM";
+"自定义" = "Custom";
+
 /* AISettings */
 "用在哪里" = "Where it's used";
-"一小时会议约 ¥0.15–1（目前优惠价）。发出去的只有文字（用你自己的声音时还有那段录音），语音识别留在本机。" = "About ¥0.15–1 per hour of meeting (current discount pricing). Only text is sent (plus your voice sample if you use your own voice); speech recognition stays on this Mac.";
 "实时纪要" = "Live notes";
-"用 Ling" = "Ling";
+"用 %@" = "%@";
 "需要 key" = "Needs key";
 "会中每 45 秒更新" = "Updated every 45 s during a meeting";
 "填好 key 后可用" = "Available once a key is set";
 "翻译" = "Translation";
-"整句用 Ling；不行时换 Google、本机" = "Full sentences use Ling; falls back to Google, then on-device";
+"整句用 %@；不行时换 Google、本机" = "Full sentences use %@; falls back to Google, then on-device";
 "没有 key 时照常可用" = "Works without a key";
 "语音识别" = "Speech recognition";
 "本机" = "On-device";
@@ -15,25 +25,46 @@
 "同声传译的声音" = "Interpreting voice";
 "Ming 的声音或你自己的声音" = "A Ming voice or your own voice";
 "没有 key 时用本机声音" = "Uses the Mac's voice without a key";
+"Ming 声音只随 Ling 提供，现用本机声音" = "Ming voices come only with Ling; using the Mac's voice";
 "去选声音" = "Choose voice";
 "模型" = "Model";
 "3.1 更准；3.0 更快、更省" = "3.1 is more accurate; 3.0 is faster and cheaper";
-"在 Ling 开放平台点“创建令牌”，复制以 sk- 开头的那串。" = "On the Ling platform, click “Create token” and copy the string that starts with sk-.";
-"打开 Ling 开放平台 ↗" = "Open the Ling platform ↗";
+"填服务支持的任意模型，回车生效" = "Any model the service offers; press Return to apply";
+"一小时会议约 ¥0.15–1（目前优惠价）。发出去的只有文字（用你自己的声音时还有那段录音），语音识别留在本机。" = "About ¥0.15–1 per hour of meeting (current discount pricing). Only text is sent (plus your voice sample if you use your own voice); speech recognition stays on this Mac.";
+"全部在这台 Mac 上运行，不花钱；语音识别也留在本机。" = "Everything runs on this Mac at no cost; speech recognition stays here too.";
+"费用按这个服务的价格计算。发出去的只有文字，语音识别留在本机。" = "Billed at this service's prices. Only text is sent; speech recognition stays on this Mac.";
+"按 %@ 的价格计费。发出去的只有文字，语音识别留在本机。" = "Billed at %@'s prices. Only text is sent; speech recognition stays on this Mac.";
+"还没填服务地址" = "No service address yet";
+"还没填模型" = "No model yet";
 "还没填 API key" = "No API key yet";
 "正在检查…" = "Checking…";
 "已连接" = "Connected";
 "这个 key 用不了" = "This key doesn't work";
 "暂时连不上" = "Can't connect right now";
 "%@ · 响应约 %@ 秒" = "%1$@ · responds in about %2$@ s";
-"Ling 提示此令牌无效，请检查是否复制完整，或重新创建一个" = "Ling says this token is invalid. Check that you copied all of it, or create a new one";
+"%@ 提示此 key 无效，请检查是否复制完整，或重新创建一个" = "%@ says this key is invalid. Check that you copied all of it, or create a new one";
 "不填 key 时，字幕和翻译仍可正常使用" = "Subtitles and translation work without a key";
+"服务" = "Service";
+"在 Ling 开放平台点“创建令牌”，复制以 sk- 开头的那串。" = "On the Ling platform, click “Create token” and copy the string that starts with sk-.";
+"在 %@ 的控制台创建 API key，复制回来粘贴。" = "Create an API key in the %@ console, then paste it here.";
+"只存在这台 Mac 上，只有你的账户能读" = "Stored only on this Mac, readable only by your account";
+"只保存在这台 Mac 上，只发给 %@" = "Stored only on this Mac, sent only to %@";
+"只存在这台 Mac 上（只有你的账户能读），只发给 %@（%@）" = "Stored only on this Mac, sent only to %@ (%@)";
+"移除" = "Remove";
+"任何兼容 OpenAI 接口的地址，如 LM Studio、vLLM 或中转服务" = "Any OpenAI-compatible address, such as LM Studio, vLLM or a relay";
+"保存地址" = "Save Address";
 "更换" = "Change";
 "重试" = "Retry";
+"本机服务不需要 key" = "Local services need no key";
+"服务不要求 key 时可以不填" = "Key is optional";
+"填 key" = "Add Key";
+"检查连接" = "Check Connection";
+"打开 Ling 开放平台 ↗" = "Open the Ling platform ↗";
+"下载 %@ ↗" = "Download %@ ↗";
+"去 %@ 创建 key ↗" = "Create a key at %@ ↗";
 "保存并检查" = "Save and check";
 "取消" = "Cancel";
-"只存在这台 Mac 上（只有你的账户能读），只发给 Ling（ant-ling.com）" = "Stored only on this Mac, sent only to Ling (ant-ling.com)";
-"移除" = "Remove";
+"选择模型" = "Choose model";
 
 /* AboutPanel */
 "把 Mac 正在播放的声音变成实时双语字幕和会议纪要" = "Live bilingual subtitles and meeting notes from whatever your Mac is playing";
@@ -127,7 +158,7 @@
 "翻译来源 " = "Translated by ";
 "换后备 " = "Fallbacks ";
 "无" = "none";
-"Ling 请求 %d 次 · 排队最久 %.2fs · token %d/%d" = "Ling requests: %d · longest queue %.2fs · tokens %d/%d";
+"AI 请求 %d 次 · 排队最久 %.2fs · token %d/%d" = "AI requests: %d · longest queue %.2fs · tokens %d/%d";
 "有人说话后，这里会显示每句话的耗时明细" = "Each sentence's timing shows here once someone speaks";
 "这场会议 · %lld 分钟 · %lld 句 · 同声传译 %lld 次" = "This meeting · %lld min · sentences: %lld · interpreted: %lld";
 "开始聆听后，这里会显示每句话的耗时明细" = "Once listening starts, the timing of every sentence shows here";
@@ -147,7 +178,7 @@
 "你感到的延迟" = "The delay you feel";
 "更新一次纪要" = "One notes update";
 "翻译通道" = "Translation";
-"Ling 用量" = "Ling usage";
+"AI 用量" = "AI usage";
 "账号上限约每秒 2 次" = "The account allows about 2 per second";
 "Ming 语音" = "Ming voice";
 "没译出" = "Not translated";
@@ -164,10 +195,11 @@
 "未安装语言包" = "Language not installed";
 "翻译通道分布" = "Translation providers";
 "共 %lld 句" = "Total: %lld";
-"Ling 请求速度" = "Ling request rate";
+"AI 请求速度" = "AI request rate";
 "排队最久" = "Longest queue";
 "本场用量" = "This meeting's usage";
 "%.1f / 2 次每秒" = "%.1f / 2 per second";
+"%.1f 次每秒" = "%.1f per second";
 "%lld 次 · %lld token" = "requests: %lld · tokens: %lld";
 "还没有" = "None yet";
 "你" = "You";
@@ -179,7 +211,7 @@
 "同声传译" = "Interpreting";
 "对方说的语言" = "Language they speak";
 "字幕" = "Subtitles";
-"只看原文时不翻译，也不用 Ling 额度" = "Original: no translation, no Ling quota";
+"只看原文时不翻译，也不用 AI 额度" = "Original: no translation, no AI quota";
 "翻译成" = "Translate to";
 "只按这种语言识别" = "Recognize only this language";
 "自动识别" = "Auto-detect";
@@ -204,9 +236,6 @@
 "从已安装的语音模型里挑最有把握的" = "Picks the most confident of the installed speech models";
 "会议原文 · %@" = "Meeting's own · %@";
 "会议原文" = "Meeting's own";
-
-/* Ling */
-"连不上 Ling，检查网络或代理" = "Can't reach Ling; check your network or proxy";
 
 /* ListenEngine */
 "%@（识别中…）→ %@" = "%1$@ (detecting…) → %2$@";
@@ -339,9 +368,11 @@
 "开始新会议" = "New Meeting";
 "更换 key" = "Change Key";
 "生成纪要需要 API key" = "Notes need an API key";
-"文字记录仍在正常保存。填入 Ling 的 key 后，会从头开始整理整场会议的内容。" = "The transcript is still being saved. Once you add a Ling key, notes are written for the whole meeting from the start.";
-"获取 Ling key ↗" = "Get a Ling key ↗";
+"文字记录仍在正常保存。在设置里填好 AI 服务的地址和模型后，会从头开始整理整场会议的内容。" = "The transcript is still being saved. Once the AI service's address and model are set in Settings, notes are written for the whole meeting from the start.";
+"文字记录仍在正常保存。填入 %@ 的 key 后，会从头开始整理整场会议的内容。" = "The transcript is still being saved. Once you add a %@ key, notes are written for the whole meeting from the start.";
 "保存并开始" = "Save and Start";
+"获取 %@ key ↗" = "Get a %@ key ↗";
+"换一家 AI 服务" = "Use another AI service";
 "没有进行中的会议" = "No meeting in progress";
 "这场会议还没有纪要" = "No notes for this meeting yet";
 "这 %@ 讲了" = "In these %@";
@@ -370,7 +401,7 @@
 "正在听…" = "Listening…";
 "听声音" = "Audio";
 "看效果" = "Try it";
-"接 Ling" = "Ling";
+"接 AI" = "AI";
 "第 %lld 步，共 %lld 步：%@" = "Step %lld of %lld: %@";
 "打开后自动继续" = "Continues once it's on";
 "上一步" = "Back";
@@ -418,21 +449,35 @@
 "就是它" = "This one";
 "字幕条可任意拖动，拖拽右下角可调整大小。" = "Drag the subtitle bar anywhere; drag its corner to resize.";
 "开会时，这些字幕还能整理成纪要" = "In meetings, these subtitles become notes";
-"下一步接上 Ling 就有" = "Connect Ling in the next step";
+"下一步接上 AI 就有" = "Connect AI in the next step";
 
 /* OnboardingKey */
-"接上 Ling，用上完整的知了" = "Connect Ling to get all of Cicada";
+"接上 AI，用上完整的知了" = "Connect AI to get all of Cicada";
 "纪要、更准的翻译和自然的同传语音都靠它，约 1 分钟。" = "Notes, sharper translation and natural interpreting voices all run on it. Takes about a minute.";
+"纪要和更准的翻译都靠它，约 1 分钟。" = "Notes and sharper translation run on it. Takes about a minute.";
 "Ling 每月赠送 ¥10 额度" = "Ling gives ¥10 of credit every month";
 "约够 10–50 小时会议" = "Enough for about 10–50 hours of meetings";
-"在 Ling 开放平台创建 key" = "Create a key on the Ling platform";
-"注册或登录后点“创建令牌”" = "Sign up or log in, then click “Create Credential”";
-"打开 Ling 开放平台" = "Open Ling platform";
+"用哪家 AI" = "AI service";
+"之后可在设置里更换" = "You can change it later in Settings";
 "复制 sk- 开头的 key，回来粘贴" = "Copy the key that starts with sk-, then paste it here";
+"复制 key，回来粘贴" = "Copy the key, then paste it here";
+"检查连接（有 key 才填）" = "Check the connection (add a key only if it uses one)";
+"API key（可不填）" = "API key (optional)";
 "粘贴并检查" = "Paste and Check";
 "这个 key 无效，请检查是否复制完整，或重新创建一个" = "This key doesn't work. Check it was copied in full, or create a new one";
 "剪贴板里没有 sk- 开头的 key，先在 Ling 开放平台复制。" = "No key starting with sk- on the clipboard. Copy it from the Ling platform first.";
-"只保存在这台 Mac 上，只发给 Ling" = "Stored only on this Mac, sent only to Ling";
+"剪贴板里没有 key，先去 %@ 复制一个。" = "No key on the clipboard. Copy one from %@ first.";
+"在 Ling 开放平台创建 key" = "Create a key on the Ling platform";
+"在这台 Mac 上运行 %@" = "Run %@ on this Mac";
+"在 %@ 创建 API key" = "Create an API key at %@";
+"注册或登录后点“创建令牌”" = "Sign up or log in, then click “Create Credential”";
+"装好后拉取一个模型，如 %@" = "Once installed, pull a model such as %@";
+"注册或登录后创建一个 key" = "Sign up or log in, then create a key";
+"打开 Ling 开放平台" = "Open Ling platform";
+"下载 %@" = "Download %@";
+"打开 %@" = "Open %@";
+"填写服务地址和模型" = "Enter the service address and model";
+"模型，如 gpt-4.1-mini" = "Model, e.g. gpt-4.1-mini";
 "现在可以用了" = "Now available";
 "开会时，纪要会跟着字幕一起更新。" = "In meetings, the notes update along with the subtitles.";
 "更准的翻译" = "Sharper translation";
@@ -445,7 +490,7 @@
 "实时翻译字幕" = "Live translated subtitles";
 "双语文字记录" = "Bilingual transcript";
 "同声传译（系统语音）" = "Interpreting (Mac voices)";
-"接上 Ling 才有" = "Needs Ling";
+"接上 AI 才有" = "Needs AI";
 "实时纪要和会后总结" = "Live notes and a summary after";
 "自然人声，约 2 秒出声" = "Natural voices in about 2 s";
 "接上后继续" = "Connect to continue";
@@ -624,7 +669,7 @@
 "%@ 秒" = "%@ s";
 "合成首音" = "First audio";
 "到达虚拟麦克风" = "Into the virtual mic";
-"没有 Ling key 时用 Google 翻译，需要能访问 Google。" = "Without a Ling key, translation uses Google, which must be reachable.";
+"没接 AI 时用 Google 翻译，需要能访问 Google。" = "Without an AI service, translation uses Google, which must be reachable.";
 "换个声音" = "Choose another voice";
 "播放对方听到的声音" = "Play what they heard";
 "听我的原声" = "Play my original";
@@ -642,11 +687,11 @@
 "意思对" = "Meaning";
 "一致 %lld" = "Matches %lld";
 "走样 %lld" = "Drifted %lld";
-"Ling 比对原话" = "Checked by Ling";
+"AI 比对原话" = "Checked by AI";
 "请看上面" = "See above";
 "已译回你的语言" = "Translated back into your language";
 "未检查" = "Not checked";
-"需要 Ling key" = "Needs Ling key";
+"需要接上 AI" = "Needs AI";
 "%lld%% 词对上" = "%lld%% of words match";
 "松开后" = "After release";
 "对方听到第一个字" = "until they hear the first word";
@@ -662,15 +707,15 @@
 "没认出是谁：太短，或和已知的声音都不像" = "Not recognised: too short, or unlike the known voices";
 "实验" = "Beta";
 "关掉说话人识别，记录里的名字一起收起" = "Turn off speaker identification; the names in your records are hidden too";
-"Ling 从对话里认出，点一下可以改" = "Ling found this name in the conversation; click to change";
+"AI 从对话里认出，点一下可以改" = "AI found this name in the conversation; click to change";
 "改名字，或和别人合并" = "Rename, or merge with someone else";
 "不准？关掉" = "Wrong? Turn off";
 "说了 %lld 句" = "%lld lines";
 "名字" = "Name";
-"Ling 正在从对话里找名字…" = "Ling is looking for names in the conversation…";
+"AI 正在从对话里找名字…" = "AI is looking for names in the conversation…";
 "输入名字" = "Type a name";
-"Ling 从对话里认出" = "Found by Ling in the conversation";
-"Ling 从对话里认出：%@" = "Found by Ling in the conversation: %@";
+"AI 从对话里认出" = "Found by AI in the conversation";
+"AI 从对话里认出：%@" = "Found by AI in the conversation: %@";
 "不是 TA" = "Not them";
 "其实是同一个人" = "Actually the same person";
 "并入 %@" = "Merge into %@";
@@ -794,8 +839,8 @@
 "翻译中…" = "Translating…";
 "正在整理纪要…" = "Writing notes…";
 "纪要会在会议进行中自动生成" = "Notes are written during the meeting";
-"使用 Ling 将文字记录整理为总结、议题、结论和人名，约需半分钟。" = "Ling turns the transcript into a summary, topics, conclusions and names. Takes about half a minute.";
-"前往 设置 › AI 服务 填入 Ling 的 API key 后即可生成。" = "Add a Ling API key in Settings › AI Service to generate them.";
+"使用 %@ 将文字记录整理为总结、议题、结论和人名，约需半分钟。" = "%@ turns the transcript into a summary, topics, conclusions and names. Takes about half a minute.";
+"前往 设置 › AI 服务 接上 AI 后即可生成。" = "Connect an AI service in Settings › AI Service to generate them.";
 "正在生成…" = "Generating…";
 "生成纪要" = "Generate Notes";
 "去填 key" = "Add Key";
@@ -815,12 +860,16 @@
 "系统声音" = "System voice";
 "你的音色" = "Your voice";
 "填入 Ling key：声音更自然，还能用你自己的声音" = "Add a Ling key for more natural voices, including your own";
+"AI 服务选 Ling：声音更自然，还能用你自己的声音" = "Choose Ling as the AI service for more natural voices, including your own";
 "去填写" = "Add key";
+"去更换" = "Switch";
 "每种语言各记一个声音" = "Each language remembers its voice";
 "对方说%@时用" = "Used when they speak %@";
 "（当前）" = " (now)";
 "Ling 不可用时自动换成本机声音" = "Falls back to the Mac's voice when Ling is unavailable";
 "填入 Ling key 后可用 Ming 声音和你自己的声音" = "With a Ling key you can use Ming voices and your own voice";
+"AI 服务选 Ling 后可用 Ming 声音和你自己的声音" = "With Ling as the AI service you can use Ming voices and your own voice";
+"需要 Ling key" = "Needs Ling key";
 "慢约 1 秒" = "~1 s slower";
 "最快" = "Fastest";
 "用我自己的声音" = "Use my own voice";
@@ -839,8 +888,9 @@
 "再录一次" = "Record Again";
 "正在听写…" = "Transcribing…";
 "%lld–%lld 秒" = "%lld–%lld s";
-"需先在“AI 服务”中填入 Ling key，才能使用你自己的声音。" = "Add a Ling key under “AI Service” to use your own voice.";
 "听起来不像或有杂音？换个安静的地方重录一次。录音仅保存在本机，可随时删除。" = "Doesn't sound like you, or noisy? Record again somewhere quiet. The recording stays on this Mac and can be deleted anytime.";
+"需先在“AI 服务”中填入 Ling key，才能使用你自己的声音。" = "Add a Ling key under “AI Service” to use your own voice.";
+"需先在“AI 服务”中选用 Ling，才能使用你自己的声音。" = "Choose Ling under “AI Service” to use your own voice.";
 "录好了，先听听像不像" = "Recorded. Listen to check it sounds like you";
 "%lld 秒 · 识别出的文字会与录音一起用于学习你的音色" = "%lld s · the recognized text is used with the recording to learn your voice";
 "你的原声" = "Your recording";

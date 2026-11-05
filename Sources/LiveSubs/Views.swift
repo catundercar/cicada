@@ -261,7 +261,7 @@ extension MenuPanelView {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(model.notesShown ? L("纪要窗口已打开") : L("纪要窗口已收起"))
                             .font(.system(size: 12)).foregroundStyle(Palette.ink)
-                        if !model.ling.hasKey {
+                        if !model.ai.hasKey {
                             Text("填入 API key 后可生成纪要；文字记录照常保存")
                                 .font(.system(size: 11)).foregroundStyle(Palette.secondary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -804,7 +804,7 @@ struct MainWindowView: View {
                         }
                 } else if tab == "notes" {
                     HStack(spacing: 0) {
-                        SessionNotesView(model: model, engine: model.notes, ling: model.ling, session: s,
+                        SessionNotesView(model: model, engine: model.notes, ai: model.ai, session: s,
                                          header: AnyView(header(s))) { t in
                             // Beside the notes, a topic's time scrolls the column; otherwise it opens the transcript.
                             if sideBySide { quoteJump = t } else { jumpTo = t; tab = "transcript" }
@@ -1098,7 +1098,7 @@ struct MainWindowView: View {
 struct SessionNotesView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var engine: NotesEngine
-    @ObservedObject var ling: LingClient
+    @ObservedObject var ai: AIClient
     let session: Session
     /// The page's title block, scrolling with the notes.
     var header: AnyView = AnyView(EmptyView())
@@ -1115,18 +1115,18 @@ struct SessionNotesView: View {
                 if let notes, !notes.isEmpty {
                     NotesContentView(notes: notes, fresh: live ? engine.fresh : [], live: live, document: true,
                                      endedAt: session.lines.last?.t, onJump: onJump)
-                } else if generating || (live && ling.hasKey && !session.lines.isEmpty) {
+                } else if generating || (live && ai.hasKey && !session.lines.isEmpty) {
                     NotesGeneratingView(heard: session.lines.count)
                 } else {
                     VStack(alignment: .leading, spacing: 10) {
                         Text(generating ? L("正在整理纪要…") : live ? L("纪要会在会议进行中自动生成") : L("这场会议还没有纪要"))
                             .font(.system(size: 15, weight: .bold))
-                        Text(ling.hasKey ? L("使用 Ling 将文字记录整理为总结、议题、结论和人名，约需半分钟。")
-                                         : L("前往 设置 › AI 服务 填入 Ling 的 API key 后即可生成。"))
+                        Text(ai.hasKey ? L("使用 \(ai.serviceName) 将文字记录整理为总结、议题、结论和人名，约需半分钟。")
+                                       : L("前往 设置 › AI 服务 接上 AI 后即可生成。"))
                             .font(.system(size: 13)).foregroundStyle(Palette.secondary)
                         if !live {
                             HStack(spacing: 8) {
-                                if ling.hasKey {
+                                if ai.hasKey {
                                     SoftButton(generating ? L("正在生成…") : L("生成纪要"), dark: true) {
                                         engine.generate(for: session.id)
                                     }

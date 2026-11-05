@@ -4,14 +4,14 @@ Cicada (知了, formerly Live Subs): a macOS app, run from the menu bar, that tu
 
 ## Scope
 
-- Surfaces: menu bar panel, live notes window (default) or subtitle bar while listening, main window (meeting records), settings, four-step onboarding (system audio, sample meeting, Ling key, speaking if wanted). A request that fits none of them gets pushed back before any UI is added.
+- Surfaces: menu bar panel, live notes window (default) or subtitle bar while listening, main window (meeting records), settings, four-step onboarding (system audio, sample meeting, AI service, speaking if wanted). A request that fits none of them gets pushed back before any UI is added.
 - Nothing the user does needs the Terminal.
-- Listening: Core Audio process tap → on-device language detection and `SpeechAnalyzer` → translation. Experimental voices: a bundled Core ML voiceprint model (`SpeakerID.swift`), compiled on first use. Speaking: hold right ⌥ or a shortcut → mic → Ming (with a Ling key) or on-device + translation → voice → BlackHole 2ch virtual mic.
+- Listening: Core Audio process tap → on-device language detection and `SpeechAnalyzer` → translation. Experimental voices: a bundled Core ML voiceprint model (`SpeakerID.swift`), compiled on first use. Speaking: hold right ⌥ or a shortcut → mic → Ming (with Ling as the AI service) or on-device + translation → voice → BlackHole 2ch virtual mic.
 
 ## Hard rules
 
-- The Ling key lives only in the 0600 `ling-api-key` file (`AIKey`): never UserDefaults, logs or exports.
-- Every Ling call goes through `LingClient` (rate gate, priorities, `thinking: disabled`, content in the system message). Partial text is translated by Google, never Ling.
+- AI keys live only in 0600 `<service>-api-key` files (`AIKey`, Ling's is `ling-api-key`): never UserDefaults, logs or exports.
+- Every AI call goes through `AIClient` (rate gate, priorities, thinking off, content in the system message). Services are `AIProvider` presets or a custom OpenAI-compatible address; Ming (voices, cloning, audio) is Ling-only. Partial text is translated by Google, never the AI service.
 - Never speak untranslated text into the room. Never bundle the GPL BlackHole driver; download it and check its pinned SHA-256.
 - The notes window is a non-activating panel with `sharingType = .none`: it must never take focus, and stays out of screen captures unless the user turns on 共享屏幕时让对方看到 (then it shows a badge).
 - UI and engine state are `@MainActor`; audio callbacks hand buffers to `AudioRouter`'s queue.
@@ -26,7 +26,7 @@ Cicada (知了, formerly Live Subs): a macOS app, run from the menu bar, that tu
 
 ## Layout
 
-- `Sources/LiveSubs`: the app, one concern per file. Engines are UI-free (`ListenEngine`, `SpeakEngine`, `SpeakTest`, `Notes`, `Translator`, `Ling`, `VirtualMic`, `SessionStore`, `Updates`…); `AppModel` wires them and holds the debug commands. Settings keys: `AppSettings` in `Settings.swift`.
+- `Sources/LiveSubs`: the app, one concern per file. Engines are UI-free (`ListenEngine`, `SpeakEngine`, `SpeakTest`, `Notes`, `Translator`, `AIClient`, `VirtualMic`, `SessionStore`, `Updates`…); `AppModel` wires them and holds the debug commands. Settings keys: `AppSettings` in `Settings.swift`.
 - `Sources/LiveSubsIcon`: renders the icon set. `site/`: the website, built by `scripts/site.py`.
 - The site is Chinese at `/`, English / Japanese / Korean under `/en/` `/ja/` `/ko/`; every `{{t.key}}` comes from `site/i18n/<lang>.json`. `start.html` is the setup page; its `img/start/` screenshots come from the app in each language. `tools/`: test helpers. `Tests/LiveSubsTests`: unit tests for the pure parts.
 

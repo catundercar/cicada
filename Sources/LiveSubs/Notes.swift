@@ -94,7 +94,7 @@ final class NotesEngine: ObservableObject {
     /// A finished meeting whose full notes are being written (main window "生成纪要").
     @Published private(set) var generatingID: String?
 
-    let ling: LingClient
+    let ai: AIClient
     let store: SessionStore
     /// The language a meeting's notes are written in (English name), set by the app from the
     /// 纪要语言 choice.
@@ -113,8 +113,8 @@ final class NotesEngine: ObservableObject {
     private var freshGeneration = 0
     static let interval: TimeInterval = 45
 
-    init(ling: LingClient, store: SessionStore) {
-        self.ling = ling
+    init(ai: AIClient, store: SessionStore) {
+        self.ai = ai
         self.store = store
     }
 
@@ -130,7 +130,7 @@ final class NotesEngine: ObservableObject {
         shownID = id
         notes = store.session(id)?.notes ?? MeetingNotes()
         fresh = []
-        state = ling.hasKey ? .idle : .noKey
+        state = ai.hasKey ? .idle : .noKey
         lastAttempt = Date()
         timer?.invalidate()
         let t = Timer(timeInterval: 5, repeats: true) { [weak self] _ in
@@ -187,10 +187,10 @@ final class NotesEngine: ObservableObject {
 
     private func tick() {
         // A key was added or replaced since the last failure.
-        if (state == .noKey || state == .invalidKey), ling.usable, ling.keyState != .checking { state = .idle }
-        if state == .idle, !ling.hasKey { state = .noKey }
+        if (state == .noKey || state == .invalidKey), ai.usable, ai.keyState != .checking { state = .idle }
+        if state == .idle, !ai.hasKey { state = .noKey }
         // A key that was just checked and refused says so, rather than asking for a key again.
-        if state == .noKey || state == .idle, ling.hasKey, ling.keyState == .invalid { state = .invalidKey }
+        if state == .noKey || state == .idle, ai.hasKey, ai.keyState == .invalid { state = .invalidKey }
         guard let id = sessionID, !inFlight else { return }
         guard let s = store.session(id), s.lines.count > notes.covered else { return }
         // First notes as soon as there is something to say, then every 45 s.
@@ -208,7 +208,7 @@ final class NotesEngine: ObservableObject {
             return
         }
         guard let session = store.session(id), !session.lines.isEmpty else { return }
-        guard ling.hasKey else { state = .noKey; return }
+        guard ai.hasKey else { state = .noKey; return }
         inFlight = true
         lastAttempt = Date()
         state = .updating
@@ -239,8 +239,8 @@ final class NotesEngine: ObservableObject {
             // again where it is read last, and try once more if the reply still isn't in it.
             var next: MeetingNotes?
             for attempt in 1...(final || fresh ? 2 : 1) {
-                let raw = try await ling.chat(content: prompt, instruction: "Update the notes. Write them in \(lang).",
-                                              priority: .notes, json: true, maxTokens: 6000, timeout: 90)
+                let raw = try await ai.chat(content: prompt, instruction: "Update the notes. Write them in \(lang).",
+                                            priority: .notes, json: true, maxTokens: 6000, timeout: 90)
                 guard let parsed = Self.parse(raw, times: lines.map(\.t), startedAt: session.lines.first?.t ?? 0) else { break }
                 if Self.written(parsed, in: lang) { next = parsed; break }
                 debugLog("notes: \(final ? "final" : "live") reply not in \(lang) (attempt \(attempt)), dropped")
@@ -270,11 +270,11 @@ final class NotesEngine: ObservableObject {
             store.setNotes(id, next)
             state = .idle
             debugLog("notes: \(final ? "final" : "live") update \(lines.count - from) new lines → \(next.topics.count) topics, \(next.terms.count) terms in \(Int(Date().timeIntervalSince(started))) s")
-        } catch LingClient.Failure.invalidKey {
+        } catch AIClient.Failure.invalidKey {
             state = .invalidKey
-        } catch LingClient.Failure.rateLimited {
+        } catch AIClient.Failure.rateLimited {
             state = .rateLimited
-        } catch LingClient.Failure.noKey {
+        } catch AIClient.Failure.noKey {
             state = .noKey
         } catch {
             debugLog("notes: update failed \(error)")

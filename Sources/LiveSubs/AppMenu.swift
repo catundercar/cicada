@@ -122,7 +122,7 @@ final class AppMenu: NSObject, NSMenuItemValidation {
             item.title = model.running ? L("停止记录") : L("开始记录")
             return true
         case #selector(updateNotes):
-            return model.store.liveID != nil && model.ling.hasKey && model.notes.state != .updating
+            return model.store.liveID != nil && model.ai.hasKey && model.notes.state != .updating
         case #selector(catchUp):
             return notesWindow.isVisible && !model.notes.notes.isEmpty
         case #selector(copyNotes):

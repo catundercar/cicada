@@ -3,7 +3,7 @@ import Foundation
 
 // MARK: - Catalog
 
-/// A voice the room can hear: one of Ming's (through the Ling key), a voice installed on this Mac,
+/// A voice the room can hear: one of Ming's (with Ling as the AI service and its key), a voice installed on this Mac,
 /// or the user's own voice cloned from a recording.
 struct VoiceOption: Identifiable, Equatable {
     enum Kind: Equatable {

@@ -16,7 +16,7 @@ struct LanguageSettings: View {
                         model.sourceSelection = $0
                     }
                 }
-                SettingsRow(title: L("字幕"), detail: L("只看原文时不翻译，也不用 Ling 额度")) {
+                SettingsRow(title: L("字幕"), detail: L("只看原文时不翻译，也不用 AI 额度")) {
                     Segments(options: subtitleOptions, value: settings.subtitles) { model.setSubtitles($0) }
                 }
                 SettingsRow(title: L("翻译成"), detail: targetDetail, divider: false) {

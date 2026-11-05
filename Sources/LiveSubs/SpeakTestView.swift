@@ -259,9 +259,9 @@ struct SpeakTestView: View {
             tile(L("听得清"), r.intelligibility.map { L("\(Int(($0 * 100).rounded()))% 词对上") } ?? L("未检查"),
                  ok: (r.intelligibility ?? 1) >= 0.6, detail: L("本机重新听写"))
             switch r.meaning {
-            case .score(let s, _): tile(L("意思对"), s >= 60 ? L("一致 \(s)") : L("走样 \(s)"), ok: s >= 60, detail: L("Ling 比对原话"))
+            case .score(let s, _): tile(L("意思对"), s >= 60 ? L("一致 \(s)") : L("走样 \(s)"), ok: s >= 60, detail: L("AI 比对原话"))
             case .back: tile(L("意思对"), L("请看上面"), ok: true, detail: L("已译回你的语言"))
-            case .unchecked: tile(L("意思对"), L("未检查"), ok: true, detail: L("需要 Ling key"))
+            case .unchecked: tile(L("意思对"), L("未检查"), ok: true, detail: L("需要接上 AI"))
             }
         }
     }
@@ -345,8 +345,8 @@ struct SpeakTestView: View {
                 model.voicePickerOpen = true
                 close()
             }
-        } else if r.broken == .translate && !model.ling.usable {
-            Text("没有 Ling key 时用 Google 翻译，需要能访问 Google。").font(.system(size: 12)).foregroundStyle(Palette.tertiary)
+        } else if r.broken == .translate && !model.ai.usable {
+            Text("没接 AI 时用 Google 翻译，需要能访问 Google。").font(.system(size: 12)).foregroundStyle(Palette.tertiary)
         }
     }
 

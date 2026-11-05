@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.1.0",
+    "date": null,
+    "title": "AI 服务不再只限 Ling",
+    "summary": "纪要、整句翻译和人名识别可以换用任何兼容 OpenAI 接口的服务，也能用本机的 Ollama。",
+    "image": null,
+    "items": [
+      {
+        "kind": "new",
+        "title": "可以换用别家 AI 服务。",
+        "text": "设置 › AI 服务和首次引导里可以选 Ling、DeepSeek、通义千问、Kimi、智谱 GLM、OpenAI、OpenRouter、本机的 Ollama，或填任何兼容 OpenAI 接口的地址和模型。纪要、整句翻译和人名识别都走所选服务，每家的 key 分开保存，换回来不用重填。Ming 的声音、声音克隆和一步语音翻译仍只随 Ling 提供，换成别家时自动用本机声音和本机识别。"
+      }
+    ]
+  },
+  {
     "version": "1.0.0",
     "date": "2026-11-03",
     "title": "第一个正式版",

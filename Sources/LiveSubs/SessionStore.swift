@@ -15,7 +15,7 @@ struct TranscriptLine: Codable, Identifiable, Equatable {
     var voice: Int? = nil
 }
 
-/// A name Ling found for a voice, and the line it is based on ("00:06 “Sure, Emma…”").
+/// A name the AI service found for a voice, and the line it is based on ("00:06 “Sure, Emma…”").
 struct VoiceGuess: Codable, Equatable {
     var name: String
     var evidence: String
@@ -33,9 +33,9 @@ struct Session: Codable, Identifiable, Equatable {
     /// The user renamed it; nil in older sessions, where any title but the default counts as renamed.
     var renamed: Bool?
     /// Experimental 说话人识别: names the user gave voices, keyed by voice id. An empty name means
-    /// "not Ling's guess": the voice shows as 说话人 N.
+    /// "not the AI's guess": the voice shows as 说话人 N.
     var voiceNames: [String: String]? = nil
-    /// Names Ling read from the conversation, keyed by voice id; shown until the user says otherwise.
+    /// Names the AI service read from the conversation, keyed by voice id; shown until the user says otherwise.
     var voiceGuesses: [String: VoiceGuess]? = nil
 
     var duration: TimeInterval { (endedAt ?? Date()).timeIntervalSince(startedAt) }
@@ -174,7 +174,7 @@ final class SessionStore: ObservableObject {
         scheduleSave(id)
     }
 
-    /// The user names a voice. nil drops their name (Ling's guess shows again); "" keeps 说话人 N.
+    /// The user names a voice. nil drops their name (the AI's guess shows again); "" keeps 说话人 N.
     func setVoiceName(_ id: String, voice: Int, _ name: String?) {
         guard let i = index(id) else { return }
         var names = sessions[i].voiceNames ?? [:]
@@ -183,7 +183,7 @@ final class SessionStore: ObservableObject {
         saveNow(id)
     }
 
-    /// Ling's latest guesses; earlier ones stay for voices it no longer mentions, unless it now named
+    /// The AI's latest guesses; earlier ones stay for voices it no longer mentions, unless it now named
     /// them without evidence (`refuted`, voice → name): then that earlier name goes too.
     func setVoiceGuesses(_ id: String, _ guesses: [Int: VoiceGuess], refuted: [Int: String] = [:]) {
         guard let i = index(id), !guesses.isEmpty || !refuted.isEmpty else { return }

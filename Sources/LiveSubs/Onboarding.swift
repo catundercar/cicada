@@ -347,12 +347,12 @@ struct OnboardingView: View {
         nonmutating set { model.onboardingStep = newValue }
     }
     var onFinish: () -> Void
-    /// System audio, sample video, Ling key, speaking; then a closing page (step 5) outside the count.
+    /// System audio, sample video, AI service, speaking; then a closing page (step 5) outside the count.
     /// The video comes before the key so people see the subtitles before being sent to sign up anywhere.
     static let steps = 4
     static let done = 5
 
-    private var stepNames: [String] { [L("听声音"), L("看效果"), L("接 Ling"), L("同声传译")] }
+    private var stepNames: [String] { [L("听声音"), L("看效果"), L("接 AI"), L("同声传译")] }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -362,7 +362,7 @@ struct OnboardingView: View {
                 switch step {
                 case 1: permissions
                 case 2: tryIt
-                case 3: OnboardingKeyStep(ling: model.ling, settings: settings, skipping: $model.onboardingKeySkip)
+                case 3: OnboardingKeyStep(ai: model.ai, settings: settings, skipping: $model.onboardingKeySkip)
                 case 4: speaking
                 default: closing
                 }
@@ -432,7 +432,7 @@ struct OnboardingView: View {
                     .padding(.horizontal, 24).frame(height: 44)
                     .background(RoundedRectangle(cornerRadius: 12).fill(Color(white: 0.87)))
             case 3:
-                OnboardingKeyFooter(ling: model.ling, skipping: $model.onboardingKeySkip, next: { step = 4 })
+                OnboardingKeyFooter(ai: model.ai, skipping: $model.onboardingKeySkip, next: { step = 4 })
             case 4 where !speakSetupShown:
                 // The two cards above are the choice; nothing to confirm here.
                 EmptyView()
@@ -553,7 +553,7 @@ struct OnboardingView: View {
                 ChoiceRow(label: L("翻译成"), value: targetName(model.listen.resolvedTarget),
                           badge: settings.target == "system" ? L("跟随系统") : nil, options: targetOptions) { model.targetSelection = $0 }
             }
-            OnboardingNotesTeaser(ling: model.ling)
+            OnboardingNotesTeaser(ai: model.ai)
         }
     }
 
@@ -771,10 +771,10 @@ struct OnboardingView: View {
 /// Under the sample video: without a key, a hint that the same words become notes (the next step);
 /// with one, where the subtitle bar can go.
 struct OnboardingNotesTeaser: View {
-    @ObservedObject var ling: LingClient
+    @ObservedObject var ai: AIClient
 
     var body: some View {
-        if ling.hasKey {
+        if ai.hasKey {
             Text("字幕条可任意拖动，拖拽右下角可调整大小。").font(.system(size: 12)).foregroundStyle(Palette.secondary)
         } else {
             HStack(spacing: 16) {
@@ -787,7 +787,7 @@ struct OnboardingNotesTeaser: View {
                 .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("开会时，这些字幕还能整理成纪要").font(.system(size: 14, weight: .semibold)).foregroundStyle(Palette.ink)
-                    Text("下一步接上 Ling 就有").font(.system(size: 12)).foregroundStyle(Palette.secondary)
+                    Text("下一步接上 AI 就有").font(.system(size: 12)).foregroundStyle(Palette.secondary)
                 }
                 Spacer(minLength: 0)
             }

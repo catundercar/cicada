@@ -574,19 +574,29 @@ struct NotesWindowView: View {
     private var keyEntry: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("生成纪要需要 API key").font(.system(size: 15, weight: .bold))
-            Text("文字记录仍在正常保存。填入 Ling 的 key 后，会从头开始整理整场会议的内容。")
-                .font(.system(size: 12)).foregroundStyle(Palette.secondary).lineSpacing(2)
-            HStack(spacing: 8) {
-                SecureField("sk-…", text: $keyDraft)
-                    .textFieldStyle(.plain).font(.system(size: 13, design: .monospaced))
-                    .padding(.horizontal, 10).frame(height: 34)
-                    .background(RoundedRectangle(cornerRadius: 9).fill(Color.white))
-                    .overlay(RoundedRectangle(cornerRadius: 9).stroke(Palette.line, lineWidth: 1))
-                    .onSubmit(saveKey)
-                SoftButton(L("保存并开始"), dark: true, action: saveKey)
+            let provider = model.ai.provider
+            if provider.needsKey {
+                Text(L("文字记录仍在正常保存。填入 \(provider.name) 的 key 后，会从头开始整理整场会议的内容。"))
+                    .font(.system(size: 12)).foregroundStyle(Palette.secondary).lineSpacing(2)
+                HStack(spacing: 8) {
+                    SecureField("sk-…", text: $keyDraft)
+                        .textFieldStyle(.plain).font(.system(size: 13, design: .monospaced))
+                        .padding(.horizontal, 10).frame(height: 34)
+                        .background(RoundedRectangle(cornerRadius: 9).fill(Color.white))
+                        .overlay(RoundedRectangle(cornerRadius: 9).stroke(Palette.line, lineWidth: 1))
+                        .onSubmit(saveKey)
+                    SoftButton(L("保存并开始"), dark: true, action: saveKey)
+                }
+            } else {
+                // A keyless service is missing its address or model: that is set up in settings.
+                Text("文字记录仍在正常保存。在设置里填好 AI 服务的地址和模型后，会从头开始整理整场会议的内容。")
+                    .font(.system(size: 12)).foregroundStyle(Palette.secondary).lineSpacing(2)
             }
-            Button("获取 Ling key ↗") {
-                if let url = URL(string: "https://chat.ant-ling.com/platform/api") { NSWorkspace.shared.open(url) }
+            HStack(spacing: 14) {
+                if provider.needsKey, let page = provider.keyPage, let url = URL(string: page) {
+                    Button(L("获取 \(provider.name) key ↗")) { NSWorkspace.shared.open(url) }
+                }
+                Button("换一家 AI 服务") { model.openSettings(.ai) }
             }
             .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.secondary)
         }
@@ -598,8 +608,8 @@ struct NotesWindowView: View {
         let k = keyDraft
         keyDraft = ""
         Task {
-            await model.ling.setKey(k)
-            if model.ling.usable { model.notes.updateNow() }
+            await model.ai.setKey(k)
+            if model.ai.usable { model.notes.updateNow() }
         }
     }
 

@@ -395,25 +395,25 @@ struct SpeakerEditRequest: Equatable {
     let voice: Int
 }
 
-/// Asks Ling for names on its own: once two voices are on show, again every 20 lines, and once more
+/// Asks the AI service for names on its own: once two voices are on show, again every 20 lines, and once more
 /// when the meeting ends. Guesses go straight into the meeting (`Session.voiceGuesses`); the user corrects.
 @MainActor
 final class SpeakerNamer: ObservableObject {
     @Published private(set) var busy: Set<String> = []
     private var askedAt: [String: Int] = [:]
-    private let ling: LingClient
+    private let ai: AIClient
     private let store: SessionStore
 
-    init(ling: LingClient, store: SessionStore) {
-        self.ling = ling
+    init(ai: AIClient, store: SessionStore) {
+        self.ai = ai
         self.store = store
     }
 
-    var available: Bool { ling.hasKey }
+    var available: Bool { ai.hasKey }
 
     /// `force`: the meeting just ended, so read it all once more.
     func guess(_ id: String, force: Bool = false) {
-        guard ling.hasKey, !busy.contains(id), let s = store.session(id) else { return }
+        guard ai.hasKey, !busy.contains(id), let s = store.session(id) else { return }
         guard force || s.lines.count >= (askedAt[id] ?? -1000) + 20, let content = SpeakerNameGuess.content(s) else { return }
         // Everyone already has a name the user gave: nothing to ask.
         let numbers = SpeakerLabels.voiceNumbers(s.lines)
@@ -423,8 +423,8 @@ final class SpeakerNamer: ObservableObject {
         Task {
             defer { busy.remove(id) }
             do {
-                let reply = try await ling.chat(content: content, instruction: SpeakerNameGuess.instruction,
-                                                priority: .notes, json: true, maxTokens: 300)
+                let reply = try await ai.chat(content: content, instruction: SpeakerNameGuess.instruction,
+                                              priority: .notes, json: true, maxTokens: 300)
                 let (found, read) = SpeakerNameGuess.read(reply, s)
                 var refuted = read
                 for (key, g) in s.voiceGuesses ?? [:] {
@@ -434,7 +434,7 @@ final class SpeakerNamer: ObservableObject {
                 debugLog("speaker names: \(found.count) found, \(refuted.count) without evidence for \(id)")
                 contentLog("speaker names reply: \(reply)")
             } catch {
-                debugLog("speaker names: ling failed \(error)")
+                debugLog("speaker names: ai failed \(error)")
             }
         }
     }
@@ -518,7 +518,7 @@ struct SpeakerStrip: View {
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
-                .help(SpeakerLabels.guessed(session)[n].map { _ in L("Ling 从对话里认出，点一下可以改") } ?? L("改名字，或和别人合并"))
+                .help(SpeakerLabels.guessed(session)[n].map { _ in L("AI 从对话里认出，点一下可以改") } ?? L("改名字，或和别人合并"))
                 .popover(isPresented: Binding(get: { editing == voice }, set: { if !$0 { editing = nil } }), arrowEdge: .bottom) {
                     SpeakerEditor(model: model, namer: model.speakerNamer, sessionID: session.id, voice: voice) { editing = nil }
                 }
@@ -577,7 +577,7 @@ struct SpeakerEditor: View {
                     TextField(L("输入名字"), text: $draft).textFieldStyle(.roundedBorder).onSubmit { save(s, guess) }
                     if let guess {
                         HStack(alignment: .top, spacing: 8) {
-                            Text(guess.evidence.isEmpty ? L("Ling 从对话里认出") : L("Ling 从对话里认出：\(guess.evidence)"))
+                            Text(guess.evidence.isEmpty ? L("AI 从对话里认出") : L("AI 从对话里认出：\(guess.evidence)"))
                                 .font(.system(size: 11)).foregroundStyle(Palette.tertiary).lineLimit(2)
                             Spacer(minLength: 6)
                             Button(L("不是 TA")) {
@@ -587,7 +587,7 @@ struct SpeakerEditor: View {
                             .buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(Palette.secondary)
                         }
                     } else if namer.busy.contains(s.id) {
-                        Text("Ling 正在从对话里找名字…").font(.system(size: 11)).foregroundStyle(Palette.tertiary)
+                        Text("AI 正在从对话里找名字…").font(.system(size: 11)).foregroundStyle(Palette.tertiary)
                     }
                 }
                 let others = numbers.filter { $0.key != voice }.sorted { $0.value < $1.value }

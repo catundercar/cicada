@@ -5,16 +5,16 @@ import SwiftUI
 
 /// One provider tried for one translation, and why it fell through.
 struct TranslateAttempt: Codable {
-    let provider: String   // ling / google / apple
+    let provider: String   // ai / google / apple
     let seconds: Double
     let failure: String?   // nil = this one answered
 }
 
-/// Filled in by `TranslationService` as it walks Ling → Google → Apple.
+/// Filled in by `TranslationService` as it walks the AI service → Google → Apple.
 @MainActor
 final class TranslateTrace {
     var attempts: [TranslateAttempt] = []
-    var lingQueue: Double = 0
+    var aiQueue: Double = 0
     var failedSeconds: Double { attempts.filter { $0.failure != nil }.reduce(0) { $0 + $1.seconds } }
     var via: String { attempts.first(where: { $0.failure == nil })?.provider ?? "none" }
     var fallbacks: [String] { attempts.compactMap { a in a.failure.map { "\(a.provider):\($0)" } } }
@@ -41,8 +41,8 @@ struct SentenceTiming: Codable, Identifiable {
     var total: Double { (recognize ?? 0) + translate }
 }
 
-/// One Ling request.
-struct LingCall: Codable {
+/// One AI request.
+struct AICall: Codable {
     let at: Date
     let priority: String
     let queue: Double
@@ -59,7 +59,7 @@ struct LingCall: Codable {
 @MainActor
 final class Diagnostics: ObservableObject {
     @Published private(set) var sentences: [SentenceTiming] = []
-    @Published private(set) var calls: [LingCall] = []
+    @Published private(set) var calls: [AICall] = []
     @Published private(set) var startedAt: Date?
     /// When the meeting stopped: the header stops counting minutes.
     @Published private(set) var endedAt: Date?
@@ -87,11 +87,11 @@ final class Diagnostics: ObservableObject {
                         s.fallbacks.isEmpty ? "" : " fallbacks=" + s.fallbacks.joined(separator: ",")))
     }
 
-    func record(_ c: LingCall) {
+    func record(_ c: AICall) {
         guard enabled() else { return }
         calls.append(c)
         if calls.count > 1000 { calls.removeFirst(calls.count - 1000) }
-        write("ling", c)
+        write("ai", c)
     }
 
     private func write<T: Encodable>(_ type: String, _ value: T) {
@@ -139,7 +139,7 @@ final class Diagnostics: ObservableObject {
         }.sorted { $0.1 > $1.1 }
     }
 
-    /// Why Ling (or Google) was passed over: hijacked, rateLimited, timeout…
+    /// Why the AI service (or Google) was passed over: hijacked, rateLimited, timeout…
     var fallbackCounts: [(String, Int)] {
         var counts: [String: Int] = [:]
         for s in sentences { for f in s.fallbacks { counts[f, default: 0] += 1 } }
@@ -147,8 +147,8 @@ final class Diagnostics: ObservableObject {
         return counts.sorted { $0.value > $1.value }.map { ($0.key, $0.value) }
     }
 
-    /// Ling requests started in the last 10 s, per second (the account allows about 2).
-    var lingRate: Double {
+    /// AI requests started in the last 10 s, per second (Ling's account allows about 2).
+    var aiRate: Double {
         let since = Date().addingTimeInterval(-10)
         return Double(calls.filter { $0.at > since }.count) / 10
     }
@@ -168,7 +168,7 @@ final class Diagnostics: ObservableObject {
         lines.append(L("翻译来源 ") + viaCounts.map { String(format: "%@ %d (p50 %.2fs)", $0.0, $0.1, $0.2) }.joined(separator: " · "))
         lines.append(L("换后备 ") + (fallbackCounts.isEmpty ? L("无") : fallbackCounts.map { "\($0.0) \($0.1)" }.joined(separator: " · ")))
         let t = tokens
-        lines.append(String(format: L("Ling 请求 %d 次 · 排队最久 %.2fs · token %d/%d"), calls.count, maxQueue, t.0, t.1))
+        lines.append(String(format: L("AI 请求 %d 次 · 排队最久 %.2fs · token %d/%d"), calls.count, maxQueue, t.0, t.1))
         return lines.joined(separator: "\n")
     }
 }
@@ -178,6 +178,8 @@ final class Diagnostics: ObservableObject {
 struct DiagnosticsView: View {
     @ObservedObject var diagnostics: Diagnostics
     var model: String = ""
+    /// Ling's account limit is shown against the rate; other services have their own.
+    var provider = AIProvider.ling
     @State private var copied = false
     @State private var tick = Date()
     private let timer = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
@@ -199,7 +201,7 @@ struct DiagnosticsView: View {
                     tile(L("纪要一轮"), diagnostics.notesRounds)
                 }
                 providers
-                lingCard
+                aiCard
                 recent
             }
             HStack(spacing: 8) {
@@ -285,7 +287,7 @@ struct DiagnosticsView: View {
         SettingsCard {
             SettingsRow(title: L("翻译通道")) {
                 HStack(spacing: 12) {
-                    ForEach(["ling", "google", "apple"], id: \.self) { v in
+                    ForEach(["ai", "google", "apple"], id: \.self) { v in
                         HStack(spacing: 5) {
                             RoundedRectangle(cornerRadius: 2).fill(Self.color(v)).frame(width: 8, height: 8)
                             Text(Self.name(v)).font(.system(size: 12)).foregroundStyle(Palette.secondary)
@@ -293,7 +295,7 @@ struct DiagnosticsView: View {
                     }
                 }
             }
-            SettingsRow(title: L("Ling 用量"), detail: L("账号上限约每秒 2 次"), divider: false) {
+            SettingsRow(title: L("AI 用量"), detail: provider.ming ? L("账号上限约每秒 2 次") : provider.name, divider: false) {
                 Text("本场还没调用").font(.system(size: 12)).foregroundStyle(Palette.tertiary)
             }
         }
@@ -335,7 +337,7 @@ struct DiagnosticsView: View {
 
     private static func color(_ via: String) -> Color {
         switch via {
-        case "ling": Palette.ink
+        case "ai", "ling": Palette.ink
         case "google": Palette.accent
         case "ming": Palette.accentInk
         default: Color(red: 0.72, green: 0.74, blue: 0.78)
@@ -344,6 +346,7 @@ struct DiagnosticsView: View {
 
     private static func name(_ via: String) -> String {
         switch via {
+        case "ai": "AI"
         case "ling": "Ling"
         case "google": "Google"
         case "apple": L("本机")
@@ -354,7 +357,7 @@ struct DiagnosticsView: View {
 
     private static func reason(_ key: String) -> String {
         let parts = key.split(separator: ":").map(String.init)
-        let who = parts.first.map { $0 == "ling" ? "Ling" : $0 == "google" ? "Google" : $0 == "notes" ? L("纪要") : $0 == "ming" ? L("Ming 语音") : L("本机") } ?? ""
+        let who = parts.first.map { $0 == "ai" ? "AI" : $0 == "ling" ? "Ling" : $0 == "google" ? "Google" : $0 == "notes" ? L("纪要") : $0 == "ming" ? L("Ming 语音") : L("本机") } ?? ""
         let why: String
         switch parts.last ?? "" {
         case "hijacked": why = L("被搜索劫持")
@@ -412,12 +415,13 @@ struct DiagnosticsView: View {
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Palette.line, lineWidth: 1))
     }
 
-    private var lingCard: some View {
+    private var aiCard: some View {
         let _ = tick
         let t = diagnostics.tokens
         return SettingsCard {
-            SettingsRow(title: L("Ling 请求速度"), detail: L("账号上限约每秒 2 次")) {
-                Text(String(format: L("%.1f / 2 次每秒"), diagnostics.lingRate)).font(.system(size: 12).monospacedDigit())
+            SettingsRow(title: L("AI 请求速度"), detail: provider.ming ? L("账号上限约每秒 2 次") : provider.name) {
+                Text(String(format: provider.ming ? L("%.1f / 2 次每秒") : L("%.1f 次每秒"), diagnostics.aiRate))
+                    .font(.system(size: 12).monospacedDigit())
                     .foregroundStyle(Palette.secondary)
             }
             SettingsRow(title: L("排队最久")) {

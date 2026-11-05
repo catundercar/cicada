@@ -88,9 +88,26 @@ final class AppSettings: ObservableObject {
     @Published var speakVoices: [String: String] {
         didSet { save() }
     }
-    /// Ling model for notes and translation.
-    @Published var aiModel: String {
+    /// The AI service for notes, translation and names (`AIProvider.id`).
+    @Published var aiProvider: String {
         didSet { save() }
+    }
+    /// The model chosen for each service; a service not listed uses its first suggestion.
+    @Published var aiModels: [String: String] {
+        didSet { save() }
+    }
+    /// The address of the 自定义 service (OpenAI-compatible, e.g. "https://example.com/v1").
+    @Published var aiBaseURL: String {
+        didSet { save() }
+    }
+    /// The model for the current service.
+    var aiModel: String {
+        get { aiModels[aiProvider] ?? AIProvider.named(aiProvider).models.first ?? "" }
+        set { aiModels[aiProvider] = newValue }
+    }
+    var aiEndpoint: (provider: AIProvider, base: String, model: String) {
+        let p = AIProvider.named(aiProvider)
+        return (p, p.isCustom ? aiBaseURL : p.base, aiModel)
     }
 
     /// End the meeting when the meeting app it was heard through hangs up.
@@ -149,7 +166,11 @@ final class AppSettings: ObservableObject {
         overlayHideAfter = defaults.object(forKey: "overlayHideAfter") as? Double ?? 4
         talkKey = Shortcut(stored: defaults.string(forKey: "talkKey")) ?? .defaultTalk
         toggleKey = Shortcut(stored: defaults.string(forKey: "toggleKey")) ?? .defaultToggle
-        aiModel = defaults.string(forKey: "aiModel") ?? "Ling-3.1-flash"
+        aiProvider = defaults.string(forKey: "aiProvider") ?? AIProvider.ling.id
+        // Before other services, "aiModel" held the Ling model.
+        aiModels = defaults.dictionary(forKey: "aiModels") as? [String: String]
+            ?? defaults.string(forKey: "aiModel").map { [AIProvider.ling.id: $0] } ?? [:]
+        aiBaseURL = defaults.string(forKey: "aiBaseURL") ?? ""
         displayMode = defaults.string(forKey: "displayMode") ?? "notes"
         speakVoices = defaults.dictionary(forKey: "speakVoices") as? [String: String] ?? [:]
         endWithApp = defaults.object(forKey: "endWithApp") as? Bool ?? true
@@ -181,7 +202,9 @@ final class AppSettings: ObservableObject {
         defaults.set(overlayHideAfter, forKey: "overlayHideAfter")
         defaults.set(talkKey.stored, forKey: "talkKey")
         defaults.set(toggleKey.stored, forKey: "toggleKey")
-        defaults.set(aiModel, forKey: "aiModel")
+        defaults.set(aiProvider, forKey: "aiProvider")
+        defaults.set(aiModels, forKey: "aiModels")
+        defaults.set(aiBaseURL, forKey: "aiBaseURL")
         defaults.set(displayMode, forKey: "displayMode")
         defaults.set(speakVoices, forKey: "speakVoices")
         defaults.set(endWithApp, forKey: "endWithApp")

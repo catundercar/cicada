@@ -42,7 +42,7 @@ Cicada detects the spoken language on device within seconds and translates into 
 
 ### Speak back in their language
 
-Hold the right `⌥` key and speak so the room hears your translated voice through BlackHole 2ch, a virtual microphone you can install from the app with one click and that Cicada switches to automatically while interpreting is on. With a Ling API key, the other side hears natural Ming voices or a clone of your own voice from an 8 to 30 second sample, and without a key it uses macOS system voices.
+Hold the right `⌥` key and speak so the room hears your translated voice through BlackHole 2ch, a virtual microphone you can install from the app with one click and that Cicada switches to automatically while interpreting is on. With Ling as the AI service and its key set, the other side hears natural Ming voices or a clone of your own voice from an 8 to 30 second sample; otherwise it uses macOS system voices.
 
 <p align="center">
   <img src="docs/interpreting.png" width="640" alt="Interpreting settings showing the right Option talk key, target language, Ming voice previews, and macOS voices">
@@ -50,7 +50,7 @@ Hold the right `⌥` key and speak so the room hears your translated voice throu
 
 ### Meeting records
 
-Every session saves its bilingual transcript, notes, and audio recording on your Mac, and turning on experimental speaker identification separates voices on the other side and fills in their names when a Ling key is set. Cicada ends the session and trims the silent tail when the call hangs up or after 10 minutes of silence, and you can generate notes later or export to Markdown, Word, or SRT subtitles. Right now "you" in the transcript covers only what you say while holding the talk key; recording what you say directly into the meeting is on the [roadmap](#roadmap).
+Every session saves its bilingual transcript, notes, and audio recording on your Mac, and turning on experimental speaker identification separates voices on the other side and fills in their names when an AI service is connected. Cicada ends the session and trims the silent tail when the call hangs up or after 10 minutes of silence, and you can generate notes later or export to Markdown, Word, or SRT subtitles. Right now "you" in the transcript covers only what you say while holding the talk key; recording what you say directly into the meeting is on the [roadmap](#roadmap).
 
 <p align="center">
   <img src="docs/records.png" width="640" alt="Meeting records window showing identified speakers and a line-by-line English and Chinese transcript">
@@ -58,7 +58,7 @@ Every session saves its bilingual transcript, notes, and audio recording on your
 
 ## Privacy & Permissions
 
-Audio capture, language detection, speech recognition (Apple SpeechAnalyzer), and meeting recordings all stay on your Mac. The only data that leaves your device is the recognized text sent for translation and meeting notes, plus the short audio clips you speak while holding the talk key when using a Ling API key. Without an API key, subtitles, translation (via Google with Apple on-device fallback), meeting records, and push-to-talk interpreting all work. Live meeting notes, one-step voice translation, and voice cloning use your own Ling API key (Ant Group's model service, see [below](#ling-api-key)), and an hour of live notes costs roughly ¥0.15 to ¥1 at current Ling pricing. Ling gives ¥10 of credit every month, enough for about 10 to 50 hours of meetings.
+Audio capture, language detection, speech recognition (Apple SpeechAnalyzer), and meeting recordings all stay on your Mac. The only data that leaves your device is the recognized text sent for translation and meeting notes, plus the short audio clips you speak while holding the talk key when using Ling. Without an AI service, subtitles, translation (via Google with Apple on-device fallback), meeting records, and push-to-talk interpreting all work. Live meeting notes, sharper sentence translation, and speaker names need an AI service: Ling (Ant Group's model service) by default, or DeepSeek, Qwen, Kimi, Zhipu GLM, OpenAI, OpenRouter, a local Ollama, or any OpenAI-compatible address (see [below](#ai-service)). One-step voice translation, Ming voices, and voice cloning come only with Ling. With Ling an hour of live notes costs roughly ¥0.15 to ¥1 at current pricing, and Ling gives ¥10 of credit every month, enough for about 10 to 50 hours of meetings; other services bill at their own prices, and Ollama is free.
 
 Cicada asks for a permission only when you use the feature that needs it, and everything else keeps working if you decline.
 
@@ -69,33 +69,35 @@ Cicada asks for a permission only when you use the feature that needs it, and ev
 | Input Monitoring | Only to tell whether the right `⌥` was pressed on its own (listen-only; nothing is blocked or logged) | The first time you talk with right `⌥` | Pick a `⌃`/`⌘` combination in Settings instead; it needs no permission |
 | Administrator password | Installing the BlackHole 2ch virtual microphone and restarting the system audio service | When you click Install in onboarding or Settings, once | The room can't hear your translation; everything else works |
 
-- **Network and virtual microphone**. Cicada only connects to Google Translate (`translate.googleapis.com`), Ling / Ming when a key is configured (`api.ant-ling.com`), the official BlackHole download, and GitHub once a day for update checks. BlackHole is downloaded from the official Apple-notarized package and verified against a hardcoded SHA-256 checksum before installing.
+- **Network and virtual microphone**. Cicada only connects to Google Translate (`translate.googleapis.com`), the AI service you choose (Ling / Ming at `api.ant-ling.com` by default), the official BlackHole download, and GitHub once a day for update checks. BlackHole is downloaded from the official Apple-notarized package and verified against a hardcoded SHA-256 checksum before installing.
 - **No analytics or servers of our own**. There is no analytics, no tracking, and no backend server. Diagnostics only log timings and counts locally in the meeting folder.
-- **Local storage**. Meetings, recordings, and notes live in `~/Library/Application Support/LiveSubs`. Your Ling key and voice sample are readable only by your user account, excluded from Time Machine backups, and never written to logs or exports.
+- **Local storage**. Meetings, recordings, and notes live in `~/Library/Application Support/LiveSubs`. Your AI service keys and voice sample are readable only by your user account, excluded from Time Machine backups, and never written to logs or exports.
 - **Private notes window**. Hidden from screen sharing, screen recording, and screenshots, unless you turn on the option to show it during screen sharing to record a demo.
 
 ## Models
 
-Without a Ling key, everything runs on Apple's on-device models plus Google Translate. With a key, Ling and Ming models handle the tasks below and fall back automatically if a request fails.
+Without an AI service, everything runs on Apple's on-device models plus Google Translate. With one, the chosen service's model handles the tasks below and falls back automatically if a request fails; the two Ming rows need Ling.
 
-| Feature | With a Ling key | Without a key / fallback |
+| Feature | With an AI service (Ling by default) | Without / fallback |
 |---|---|---|
 | Speech recognition and language detection | Apple `SpeechAnalyzer` / `SpeechTranscriber` (on device) | same |
-| Translating finished sentences | Ling `Ling-3.1-flash` (or `Ling-3.0-flash`, set in Settings › AI Service) | Google Translate → Apple `Translation` (on device) |
-| Translating the sentence still being spoken | Google Translate (saves Ling's rate limit) | Apple `Translation` (on device) |
-| Live notes and the final version | Ling `Ling-3.1-flash` (same setting) | not available |
-| Checking the key | Ling `Ling-3.0-tiny` (one token) | — |
-| Interpreting: hearing and translating what you say | Ming `Ming-3.0-audio-flash`, one step | Apple on-device transcript, then the translation chain above |
-| Interpreting: the voice the room hears, voice cloning | Ming `Ming-3.0-tts-0.5B` | macOS system voices (`AVSpeechSynthesizer`); no cloning |
+| Translating finished sentences | The chosen service's model, Ling `Ling-3.1-flash` by default (change service or model in Settings › AI Service) | Google Translate → Apple `Translation` (on device) |
+| Translating the sentence still being spoken | Google Translate (saves the AI service's rate limit) | Apple `Translation` (on device) |
+| Live notes, the final version, speaker names | Same as above | not available |
+| Checking the key | The chosen model (`Ling-3.0-tiny` for Ling), one token | — |
+| Interpreting: hearing and translating what you say | With Ling: Ming `Ming-3.0-audio-flash`, one step; other services use the right column | Apple on-device transcript, then the translation chain above |
+| Interpreting: the voice the room hears, voice cloning | With Ling: Ming `Ming-3.0-tts-0.5B`; other services use the right column | macOS system voices (`AVSpeechSynthesizer`); no cloning |
 | Speaker identification (说话人识别, experimental, off by default) | WeSpeaker ResNet34-LM voiceprints, bundled, on device (Core ML) | same |
 
-<a id="ling-api-key"></a>
-## Setting up a Ling API key
+<a id="ai-service"></a>
+## Setting up the AI service
 
-1. Sign up or log in on the [Ling open platform](https://chat.ant-ling.com/platform/api).
-2. Click **创建令牌** (create token) and copy the key that starts with `sk-`.
-3. In Cicada, open **Settings › AI Service**, paste the key, and click **Save and check** (or paste it in the prompt at the top of the notes window). A one-token request confirms it works.
-4. Optionally pick the model (`Ling-3.1-flash` by default) on the same page, and the Ming voice for each language under **Settings › Interpreting**. To remove the key, click **Remove** on the same page.
+1. In Cicada, open **Settings › AI Service** (or step 3 of onboarding) and pick a **Service**: Ling (default), DeepSeek, Qwen, Kimi, Zhipu GLM, OpenAI, OpenRouter, Ollama, or **Custom**.
+2. Create an API key on that service and copy it. For Ling: sign up or log in on the [Ling open platform](https://chat.ant-ling.com/platform/api), click **创建令牌** (create token), and copy the key that starts with `sk-`.
+3. Paste the key and click **Save and check** (or paste it in the prompt at the top of the notes window). A one-token request confirms the key and model work. Each service keeps its own key, so switching back needs no new one.
+4. Optionally change the model on the same page: `Ling-3.1-flash` or `Ling-3.0-flash` for Ling, any model the service offers for the others (after a check, the menu lists the service's own models).
+5. A local [Ollama](https://ollama.com/download) needs no key: install it, pull a model such as `qwen2.5:7b`, and click **Check Connection**. **Custom** takes any OpenAI-compatible address (LM Studio, vLLM, a relay…), with an optional key.
+6. Pick the Ming voice for each language under **Settings › Interpreting** (Ling only). To remove a key, click **Remove** on the same page.
 
 ## Requirements & Installation
 
@@ -103,7 +105,7 @@ Requires **macOS 26 or later** on **Apple silicon**. The UI is available in Engl
 
 Download `Cicada-<version>-macOS-AppleSilicon.dmg` from [Releases](https://github.com/wquguru/cicada/releases/latest) or [the website](https://cicada.indaloop.app), open it, and drag **Cicada** into **Applications**. Builds are ad-hoc signed and not notarized yet (see [roadmap](#roadmap)), so if macOS blocks the first launch, open **System Settings › Privacy & Security** and click **Open Anyway**. Each release includes `checksums.txt`, which you can verify with `shasum -a 256 Cicada-*.dmg`. For questions, reach out to the author [@wquguru](https://x.com/wquguru) on X.
 
-The first-launch guide asks for one permission, plays a short two-person sample meeting so you can see live subtitles right away, helps you connect your Ling key (or skip it for now), and sets up the virtual microphone if you want interpreting. Later updates show as an orange dot on the menu bar icon and install in one click without losing your permissions.
+The first-launch guide asks for one permission, plays a short two-person sample meeting so you can see live subtitles right away, helps you connect an AI service (or skip it for now), and sets up the virtual microphone if you want interpreting. Later updates show as an orange dot on the menu bar icon and install in one click without losing your permissions.
 
 <p align="center">
   <img src="docs/onboarding.png" width="640" alt="Onboarding step 2 playing a two-person sample meeting with live bilingual subtitles">

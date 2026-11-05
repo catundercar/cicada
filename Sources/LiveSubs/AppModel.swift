@@ -15,7 +15,7 @@ final class AppModel: ObservableObject {
     let toggleKey = HotKey(id: 2, shortcut: .defaultToggle)
     lazy var listen = ListenEngine(settings: settings)
     lazy var speak = SpeakEngine(settings: settings)
-    lazy var speakTester = SpeakTester(speak: speak, ling: ling, settings: settings)
+    lazy var speakTester = SpeakTester(speak: speak, ai: ai, settings: settings)
     /// Key released → the room heard the first sound, from the latest real press or sound test.
     @Published var lastSpeakLatency: Double? = UserDefaults.standard.object(forKey: "lastSpeakLatency") as? Double {
         didSet { UserDefaults.standard.set(lastSpeakLatency, forKey: "lastSpeakLatency") }
@@ -78,16 +78,16 @@ final class AppModel: ObservableObject {
     private var permissionPoll: Timer?
     private var shortcutsSuspended = false
     let installer = VirtualMicInstaller()
-    let ling = LingClient()
-    lazy var translator = TranslationService(ling: ling)
+    let ai = AIClient()
+    lazy var translator = TranslationService(ai: ai)
     let diagnostics = Diagnostics()
     let updates = Updates()
     let loginItem = LoginItem()
-    lazy var notes = NotesEngine(ling: ling, store: store)
+    lazy var notes = NotesEngine(ai: ai, store: store)
     lazy var notesWindow = NotesWindowController(model: self)
     let sample = SamplePlayer()
     let speakers = SpeakerTagger()
-    lazy var speakerNamer = SpeakerNamer(ling: ling, store: store)
+    lazy var speakerNamer = SpeakerNamer(ai: ai, store: store)
     /// Set by the notes window; the records window's people row opens that voice's editor.
     @Published var speakerEdit: SpeakerEditRequest?
     private var speakerSetting: AnyCancellable?
@@ -149,16 +149,18 @@ final class AppModel: ObservableObject {
         speakTester.translate = { [weak self] text, from, to in
             await self?.listen.translate(text, source: from, target: to, kind: .speak, trace: TranslateTrace())
         }
-        ling.onCall = { [weak self] in self?.diagnostics.record($0) }
+        ai.onCall = { [weak self] in self?.diagnostics.record($0) }
 
-        ling.model = { [weak self] in self?.settings.aiModel ?? "Ling-3.1-flash" }
+        ai.endpoint = { [weak self] in
+            self?.settings.aiEndpoint ?? (AIProvider.ling, AIProvider.ling.base, AIProvider.ling.models[0])
+        }
         listen.translator = translator
         translator.glossary = { [weak self] in self?.notes.glossary ?? [] }
         notes.language = { [weak self] id in
             TranslationService.englishName(self?.notesLanguageCode(id) ?? "zh-CN")
         }
         listen.translationOff = { [weak self] in self?.subtitles == "original" }
-        if ling.hasKey { Task { await ling.check() } }
+        Task { await ai.reconfigure() }
 
         installer.speakThrough = { [weak self] text, lang, device in
             await self?.speak.speak(text, language: lang, device: device)
@@ -703,6 +705,13 @@ final class AppModel: ObservableObject {
         return nil
     }
 
+    /// Switches the AI service; its own key and model come back with it.
+    func setAIProvider(_ id: String) {
+        guard AIProvider.all.contains(where: { $0.id == id }), id != settings.aiProvider else { return }
+        settings.aiProvider = id
+        Task { await ai.reconfigure() }
+    }
+
     /// The room hears the voice chosen for its language (looked up each time it speaks).
     func applyVoice() {
         speak.route = { [weak self] language in
@@ -711,36 +720,36 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// The chosen voice for a language, or its default (Ming's first with a key, else the Mac's).
+    /// The chosen voice for a language, or its default (Ming's first with Ling, else the Mac's).
     func voiceID(for language: String) -> String? {
         if let id = settings.speakVoices[VoiceCatalog.key(for: language)] {
-            if id == "clone" && !VoiceReference.exists { return VoiceCatalog.defaultID(for: language, hasKey: ling.usable) }
+            if id == "clone" && !VoiceReference.exists { return VoiceCatalog.defaultID(for: language, hasKey: ai.mingUsable) }
             return id
         }
-        return VoiceCatalog.defaultID(for: language, hasKey: ling.usable)
+        return VoiceCatalog.defaultID(for: language, hasKey: ai.mingUsable)
     }
 
     func setVoice(_ id: String, for language: String) {
         settings.speakVoices[VoiceCatalog.key(for: language)] = id
     }
 
-    /// Ming's voices need a working key; without one the Mac's voice speaks.
+    /// Ming's voices need a working Ling key; without one (or with another service) the Mac's voice speaks.
     func voiceRoute(id: String?, language: String) -> SpeakEngine.VoiceRoute {
         guard let id else { return .system(nil) }
         if id.hasPrefix("system:") { return .system(String(id.dropFirst("system:".count))) }
-        guard ling.usable else { return .system(nil) }
+        guard ai.mingUsable else { return .system(nil) }
         let lang = VoiceCatalog.mingLanguage(for: language)
         if id == "clone" {
             guard let ref = VoiceReference.reference() else { return .system(nil) }
             return .stream { [weak self] text in
-                self?.ling.speech(text, voice: nil, reference: ref, language: lang)
-                    ?? AsyncThrowingStream { $0.finish(throwing: LingClient.Failure.noKey) }
+                self?.ai.speech(text, voice: nil, reference: ref, language: lang)
+                    ?? AsyncThrowingStream { $0.finish(throwing: AIClient.Failure.noKey) }
             }
         }
         let voice = String(id.dropFirst("ming:".count))
         return .stream { [weak self] text in
-            self?.ling.speech(text, voice: voice, language: lang)
-                ?? AsyncThrowingStream { $0.finish(throwing: LingClient.Failure.noKey) }
+            self?.ai.speech(text, voice: voice, language: lang)
+                ?? AsyncThrowingStream { $0.finish(throwing: AIClient.Failure.noKey) }
         }
     }
 
@@ -1042,7 +1051,7 @@ final class AppModel: ObservableObject {
             setDiagnostics(arg != "off")
             debugLog("diagnostics \(settings.diagnostics ? "on" : "off")")
         case "diagReport":
-            debugLog("diag report:\n" + diagnostics.report(version: "", model: settings.aiModel))
+            debugLog("diag report:\n" + diagnostics.report(version: "", model: "\(ai.provider.name) \(settings.aiModel)"))
         case "micTest": installer.runTest()
         case "micNext": installer.next()
         case "sysMic":
@@ -1071,8 +1080,18 @@ final class AppModel: ObservableObject {
             debugLog("shortcuts talk=\(settings.talkKey.display) armed=\(talkRight.isRunning || talkCombo.isRegistered) needsPermission=\(talkNeedsPermission) inputMonitoring=\(RightOptionKey.allowed) toggle=\(settings.toggleKey.display) taken=\(toggleKeyTaken)")
         case "aiKeyFile":
             // Dev testing: the key comes from a file so it never passes through the log.
-            if let k = try? String(contentsOfFile: arg, encoding: .utf8) { Task { await ling.setKey(k) } }
-        case "aiCheck": Task { await ling.check() }
+            if let k = try? String(contentsOfFile: arg, encoding: .utf8) { Task { await ai.setKey(k) } }
+        case "aiCheck": Task { await ai.check() }
+        case "aiProvider":
+            // aiProvider:<id> switches service (ling, deepseek, qwen, kimi, glm, openai, openrouter, ollama, custom).
+            setAIProvider(arg)
+        case "aiModel":
+            settings.aiModel = arg
+            Task { await ai.reconfigure() }
+        case "aiBase":
+            // aiBase:<url>: the 自定义 service's address.
+            settings.aiBaseURL = arg
+            Task { await ai.reconfigure() }
         case "voice":
             // voice:<lang>=<id> chooses ("voice:en=ming:UK_George", "voice:zh=clone"); voice:<lang> logs the choice.
             let kv = arg.split(separator: "=", maxSplits: 1).map(String.init)
@@ -1203,14 +1222,15 @@ final class AppModel: ObservableObject {
             }
         case "notesState": debugLog("notes state=\(notes.state) topics=\(notes.notes.topics.count) covered=\(notes.notes.covered) glossary=\(notes.glossary.count) timedPoints=\(notes.notes.topics.reduce(0) { $0 + ($1.pointTimes?.compactMap { $0 }.count ?? 0) })/\(notes.notes.topics.reduce(0) { $0 + $1.points.count }) fresh=\(notes.fresh.count)")
         case "lingSimulate":
-            ling.simulate = ["429": .rateLimited, "hijack": .hijacked, "timeout": .timeout][arg]
-            debugLog("ling simulate=\(String(describing: ling.simulate))")
-        case "aiRemove": ling.removeKey()
+            ai.simulate = ["429": .rateLimited, "hijack": .hijacked, "timeout": .timeout][arg]
+            debugLog("ai simulate=\(String(describing: ai.simulate))")
+        case "aiRemove": ai.removeKey()
         case "aiHide":
             // aiHide:<on|off>: the key file stays; the app behaves as if there were none (for screenshots).
-            ling.hideKey = arg != "off"
-            Task { await ling.check() }
-        case "aiState": debugLog("ai state=\(ling.keyState) hasKey=\(ling.hasKey) model=\(settings.aiModel)")
+            ai.hideKey = arg != "off"
+            Task { await ai.check() }
+        case "aiState":
+            debugLog("ai state=\(ai.keyState) provider=\(ai.provider.id) base=\(ai.baseURL?.absoluteString ?? "-") hasKey=\(ai.hasKey) model=\(settings.aiModel) ming=\(ai.mingUsable) listed=\(ai.listedModels.count)")
         case "subtitles": setSubtitles(arg)
         case "meetingSubtitles": setSubtitles(arg, meetingOnly: true)
         case "notesLang": setNotesLanguage(arg)

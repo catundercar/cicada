@@ -103,7 +103,8 @@ enum AIKey {
 
     /// "sk-…3f9a" for display.
     static func masked(_ key: String) -> String {
-        guard key.count > 8 else { return "sk-…" }
+        // Short keys (a local server's own) show nothing of themselves, and no Ling-style "sk-".
+        guard key.count > 8 else { return String(repeating: "•", count: 8) }
         return String(key.prefix(3)) + String(repeating: "•", count: 12) + String(key.suffix(4))
     }
 }
